@@ -13,7 +13,6 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PinInput } from '../src/components/PinInput';
@@ -24,8 +23,7 @@ import { useAuth } from '../src/context/AuthContext';
 type Step = 'create' | 'confirm' | 'biometrics';
 
 export default function SetupPinScreen() {
-  const router = useRouter();
-  const { unlock } = useAuth();
+  const { unlock, refreshPinExists } = useAuth();
   const [step, setStep] = useState<Step>('create');
   const [firstPin, setFirstPin] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -47,6 +45,7 @@ export default function SetupPinScreen() {
 
     try {
       await setupPin(pin);
+      await refreshPinExists();
 
       const available = await isBiometricsAvailable();
       setBiometricsAvailable(available);
@@ -55,7 +54,6 @@ export default function SetupPinScreen() {
         setStep('biometrics');
       } else {
         unlock();
-        router.replace('/home');
       }
     } catch (err: any) {
       Alert.alert('Error', err.message);
@@ -65,7 +63,6 @@ export default function SetupPinScreen() {
   const handleEnableBiometrics = async (enable: boolean) => {
     await setBiometricsEnabled(enable);
     unlock();
-    router.replace('/home');
   };
 
   if (step === 'biometrics') {
@@ -107,14 +104,14 @@ export default function SetupPinScreen() {
         <Text style={styles.title}>Secure Card Vault</Text>
         <Text style={styles.subtitle}>
           {step === 'create'
-            ? 'Create a 4–6 digit PIN to protect your vault.'
+            ? 'Create a 4-digit PIN to protect your vault.'
             : 'Re-enter your PIN to confirm.'}
         </Text>
 
         <PinInput
           key={step}
           minLength={4}
-          maxLength={6}
+          maxLength={4}
           label={step === 'create' ? 'Create PIN' : 'Confirm PIN'}
           onComplete={step === 'create' ? handleCreate : handleConfirm}
           errorMessage={errorMsg}

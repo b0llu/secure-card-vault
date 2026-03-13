@@ -179,15 +179,27 @@ export default function CardDetailScreen() {
             value={formatCardNumber(card.cardNumber)}
             mono
           />
+          {card.validFromMonth && card.validFromYear ? (
+            <InfoRow
+              label="Valid From"
+              value={formatExpiry(card.validFromMonth, card.validFromYear)}
+            />
+          ) : null}
           <InfoRow
             label="Expiry"
             value={formatExpiry(card.expiryMonth, card.expiryYear)}
           />
           <InfoRow
             label="CVV"
-            value={showCVV ? card.cvv : '•••'}
+            value={showCVV ? card.cvv : (card.cvv.length === 4 ? '••••' : '•••')}
             mono
           />
+          {card.bankName ? (
+            <InfoRow label="Bank" value={card.bankName} />
+          ) : null}
+          {card.cardType ? (
+            <InfoRow label="Card Type" value={card.cardType} />
+          ) : null}
           {card.nickname ? (
             <InfoRow label="Nickname" value={card.nickname} />
           ) : null}

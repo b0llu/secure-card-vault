@@ -23,7 +23,6 @@ import {
   getBrandGradient,
   getBrandLabel,
 } from '../src/utils/cardUtils';
-import { useAuth } from '../src/context/AuthContext';
 import { ThemedButton } from '../src/components/ThemedButton';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -31,7 +30,6 @@ const FREE_LIMIT = 3;
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { lock } = useAuth();
   const [cards, setCards] = useState<Card[]>([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -96,7 +94,7 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Secure Card Vault</Text>
+          <Text style={styles.headerTitle}>Card Vault</Text>
           <Text style={styles.headerSub}>
             {count}/{FREE_LIMIT} cards (Free)
           </Text>
@@ -107,9 +105,6 @@ export default function HomeScreen() {
             style={styles.headerBtn}
           >
             <Text style={styles.headerBtnText}>🔒</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={lock} style={styles.headerBtn}>
-            <Text style={styles.headerBtnText}>⎋</Text>
           </TouchableOpacity>
         </View>
       </View>

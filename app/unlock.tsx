@@ -25,7 +25,6 @@ import {
   verifyPin,
   isBiometricsEnabled,
   authenticateWithBiometrics,
-  getBiometricType,
 } from '../src/services/authService';
 import { useAuth } from '../src/context/AuthContext';
 
@@ -34,7 +33,6 @@ export default function UnlockScreen() {
   const { unlock } = useAuth();
   const [errorMsg, setErrorMsg] = useState('');
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
-  const [biometricType, setBiometricType] = useState('Biometrics');
 
   const handleSuccess = useCallback(() => {
     unlock();
@@ -48,15 +46,10 @@ export default function UnlockScreen() {
 
   useEffect(() => {
     (async () => {
-      const [enabled, type] = await Promise.all([
-        isBiometricsEnabled(),
-        getBiometricType(),
-      ]);
+      const enabled = await isBiometricsEnabled();
       setBiometricsEnabled(enabled);
-      setBiometricType(type);
 
       if (enabled) {
-        // Auto-prompt biometrics on mount
         await tryBiometrics();
       }
     })();
@@ -79,12 +72,12 @@ export default function UnlockScreen() {
           <Text style={styles.icon}>🔐</Text>
         </View>
 
-        <Text style={styles.title}>Secure Card Vault</Text>
+        <Text style={styles.title}>Card Vault</Text>
         <Text style={styles.subtitle}>Enter your PIN to unlock</Text>
 
         <PinInput
           minLength={4}
-          maxLength={6}
+          maxLength={4}
           label="Enter PIN"
           onComplete={handlePinComplete}
           errorMessage={errorMsg}
@@ -96,7 +89,7 @@ export default function UnlockScreen() {
             onPress={tryBiometrics}
           >
             <Text style={styles.biometricText}>
-              Use {biometricType} instead
+              Use Biometrics instead
             </Text>
           </TouchableOpacity>
         )}

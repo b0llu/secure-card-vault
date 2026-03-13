@@ -19,19 +19,30 @@ export function detectCardBrand(cardNumber: string): CardBrand {
 // ─── Formatting ───────────────────────────────────────────────────────────────
 
 /**
- * Returns "•••• 4242" style masked number.
+ * Returns masked number. Amex shows "•••• •••••• #####", others "•••• •••• •••• ####".
  */
 export function maskCardNumber(cardNumber: string): string {
   const n = cardNumber.replace(/\D/g, '');
-  const last4 = n.slice(-4);
-  return `•••• •••• •••• ${last4}`;
+  if (/^3[47]/.test(n)) {
+    // Amex: 4-6-5
+    return `•••• •••••• ${n.slice(10)}`;
+  }
+  return `•••• •••• •••• ${n.slice(-4)}`;
 }
 
 /**
- * Formats a raw digit string as "4242 4242 4242 4242".
+ * Formats a raw digit string using network-appropriate grouping.
+ * Amex: "3782 822463 10005"  (4-6-5)
+ * Others: "4242 4242 4242 4242"  (4-4-4-4)
  */
 export function formatCardNumber(cardNumber: string): string {
   const n = cardNumber.replace(/\D/g, '');
+  if (/^3[47]/.test(n)) {
+    // Amex 4-6-5
+    if (n.length <= 4) return n;
+    if (n.length <= 10) return `${n.slice(0, 4)} ${n.slice(4)}`;
+    return `${n.slice(0, 4)} ${n.slice(4, 10)} ${n.slice(10)}`;
+  }
   const groups = n.match(/.{1,4}/g) ?? [];
   return groups.join(' ');
 }

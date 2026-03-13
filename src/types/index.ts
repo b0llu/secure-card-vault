@@ -16,6 +16,10 @@ export interface Card {
   cvv: string;           // 3–4 digit security code
   nickname: string;      // User-defined label e.g. "Travel Visa"
   brand: CardBrand;
+  bankName?: string;       // e.g. "HDFC Bank", "Chase"
+  validFromMonth?: string; // "01" – "12" (if card shows valid-from date)
+  validFromYear?: string;  // "23", "24", …
+  cardType?: string;       // e.g. "Debit", "International Debit", "Coral"
 }
 
 // Raw row as returned from SQLite
@@ -54,4 +58,9 @@ export interface OCRCardResult {
   cardNumber?: string;
   expiryMonth?: string;
   expiryYear?: string;
+  cardHolderName?: string;  // Detected name to pre-fill the name field
+  bankName?: string;        // e.g. "HDFC Bank"
+  validFromMonth?: string;
+  validFromYear?: string;
+  cardType?: string;        // e.g. "Debit", "International Debit"
 }

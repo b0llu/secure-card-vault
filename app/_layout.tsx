@@ -6,7 +6,7 @@
  */
 
 import 'react-native-gesture-handler';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -14,29 +14,17 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 import { AuthProvider, useAuth } from '../src/context/AuthContext';
-import { hasPin } from '../src/services/authService';
 
 // ─── Navigation guard ─────────────────────────────────────────────────────────
 
 function NavigationGuard({ children }: { children: React.ReactNode }) {
-  const { isUnlocked } = useAuth();
+  const { isUnlocked, pinExists } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const [ready, setReady] = useState(false);
-  const [pinExists, setPinExists] = useState<boolean | null>(null);
-
-  // On mount: check if a PIN has been set up
-  useEffect(() => {
-    (async () => {
-      const exists = await hasPin();
-      setPinExists(exists);
-      setReady(true);
-    })();
-  }, []);
 
   // Route guard: redirect based on auth state
   useEffect(() => {
-    if (!ready || pinExists === null) return;
+    if (pinExists === null) return;
 
     const inAuthFlow =
       segments[0] === 'unlock' || segments[0] === 'setup-pin';
@@ -51,9 +39,9 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
       // Unlocked — send to home if on an auth screen
       if (inAuthFlow) router.replace('/home');
     }
-  }, [ready, pinExists, isUnlocked, segments, router]);
+  }, [pinExists, isUnlocked, segments, router]);
 
-  if (!ready) {
+  if (pinExists === null) {
     return (
       <View style={styles.loader}>
         <ActivityIndicator color="#00C896" size="large" />
@@ -93,11 +81,15 @@ export default function RootLayout() {
               />
               <Stack.Screen
                 name="home"
-                options={{ title: 'Secure Card Vault', headerShown: false }}
+                options={{ title: 'Card Vault', headerShown: false }}
               />
               <Stack.Screen
                 name="add-card"
-                options={{ title: 'Add Card', headerBackTitle: 'Back' }}
+                options={{
+                  title: 'Add Card',
+                  headerBackTitle: 'Back',
+                  contentStyle: { backgroundColor: '#0E0E0E' },
+                }}
               />
               <Stack.Screen
                 name="card/[id]"

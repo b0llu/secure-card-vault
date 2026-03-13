@@ -1,12 +1,16 @@
 /**
  * add-card.tsx
  *
- * Two-mode screen: manual entry OR OCR scan.
+ * Scan flow:
+ *  - Camera stays open after each scan so you can scan Front and Back
+ *    in a single session. Tap "Done" when finished.
+ *  - A ✓ appears on the pill toggle once a side has been scanned.
+ *  - Front: card number, expiry, valid-from, name, bank, card type.
+ *  - Back: CVV.
  *
- * Manual: standard form fields with validation.
- * Scan:   VisionCamera live preview → capture photo → MLKit OCR → pre-fill form.
- *
- * Also supports picking an image from the gallery (dev utility / accessibility).
+ * Progressive disclosure:
+ *  - Core fields always visible: Name, Card Number, Expiry, CVV, Nickname.
+ *  - Extra fields (Bank Name, Card Type, Valid From) only shown when populated.
  */
 
 import React, { useCallback, useRef, useState } from 'react';
@@ -34,12 +38,17 @@ import * as ImagePicker from 'expo-image-picker';
 
 import { addCard } from '../src/storage/database';
 import { detectCardBrand, isValidExpiry, formatCardNumber } from '../src/utils/cardUtils';
-import { parseCardFromOCR } from '../src/utils/ocrParser';
+import { parseCardFromOCR, parseCVVFromOCR } from '../src/utils/ocrParser';
 import { ThemedButton } from '../src/components/ThemedButton';
 
-type Mode = 'manual' | 'scan';
+type ScanSide = 'front' | 'back';
 
 const FIELD_PLACEHOLDER_COLOR = '#555558';
+const BG = '#0E0E0E';
+
+function cardNumberMaxLength(isAmex: boolean) {
+  return isAmex ? 17 : 19;
+}
 
 export default function AddCardScreen() {
   const router = useRouter();
@@ -47,82 +56,118 @@ export default function AddCardScreen() {
   const { hasPermission, requestPermission } = useCameraPermission();
   const cameraRef = useRef<Camera>(null);
 
-  const [mode, setMode] = useState<Mode>('manual');
   const [scanning, setScanning] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [scanSide, setScanSide] = useState<ScanSide>('front');
+  const [frontScanned, setFrontScanned] = useState(false);
+  const [backScanned, setBackScanned] = useState(false);
 
-  // Form state
+  // Core form fields
   const [name, setName] = useState('');
   const [cardNumber, setCardNumber] = useState('');
   const [expiryMonth, setExpiryMonth] = useState('');
   const [expiryYear, setExpiryYear] = useState('');
   const [cvv, setCvv] = useState('');
   const [nickname, setNickname] = useState('');
+
+  // Extra fields — only shown when they have values
+  const [bankName, setBankName] = useState('');
+  const [cardType, setCardType] = useState('');
+  const [validFromMonth, setValidFromMonth] = useState('');
+  const [validFromYear, setValidFromYear] = useState('');
+
   const [saving, setSaving] = useState(false);
 
   const brand = detectCardBrand(cardNumber);
+  const isAmex = brand === 'amex';
+  const cvvMaxLength = isAmex ? 4 : 3;
 
-  // ── OCR scanning ──────────────────────────────────────────────────────────
+  const showBankName = bankName.length > 0;
+  const showCardType = cardType.length > 0;
+  const showValidFrom = validFromMonth.length > 0 || validFromYear.length > 0;
+
+  // ── OCR ─────────────────────────────────────────────────────────────────────
+
+  const processImage = useCallback(async (fileUri: string, side: ScanSide) => {
+    try {
+      const result = await TextRecognition.recognize(fileUri);
+
+      // ── Dev console: full OCR output ──
+      console.log('──────────────────────────────────────');
+      console.log(`OCR [${side.toUpperCase()}] raw text:`);
+      console.log(result.text);
+      console.log('──────────────────────────────────────');
+
+      if (side === 'front') {
+        const parsed = parseCardFromOCR(result.text);
+
+        console.log('OCR [FRONT] parsed result:', JSON.stringify(parsed, null, 2));
+
+        if (parsed.cardNumber) setCardNumber(parsed.cardNumber);
+        if (parsed.expiryMonth) setExpiryMonth(parsed.expiryMonth);
+        if (parsed.expiryYear) setExpiryYear(parsed.expiryYear);
+        if (parsed.validFromMonth) setValidFromMonth(parsed.validFromMonth);
+        if (parsed.validFromYear) setValidFromYear(parsed.validFromYear);
+        if (parsed.cardHolderName) setName(parsed.cardHolderName);
+        if (parsed.bankName) setBankName(parsed.bankName);
+        if (parsed.cardType) setCardType(parsed.cardType);
+
+        setFrontScanned(true);
+
+        if (!parsed.cardNumber && !parsed.expiryMonth) {
+          Alert.alert(
+            'No card data detected',
+            'Could not extract card details. Try adjusting the angle or lighting.',
+          );
+        }
+      } else {
+        const detected = parseCVVFromOCR(result.text);
+
+        console.log('OCR [BACK] CVV detected:', detected ?? 'none');
+
+        if (detected) {
+          setCvv(detected);
+          setBackScanned(true);
+        } else {
+          Alert.alert('CVV Not Found', 'Could not detect the CVV. Enter it manually.');
+        }
+      }
+    } catch (err) {
+      console.error('OCR error:', err);
+      Alert.alert('OCR Error', 'Could not read the image.');
+    }
+  }, []);
 
   const handleCapturePhoto = useCallback(async () => {
     if (!cameraRef.current) return;
     setScanning(true);
     try {
-      const photo = await cameraRef.current.takePhoto({
-        flash: 'off',
-      });
-      const fileUri = `file://${photo.path}`;
-      await processOCR(fileUri);
+      const photo = await cameraRef.current.takePhoto({ flash: 'off' });
+      await processImage(`file://${photo.path}`, scanSide);
     } catch (err: any) {
       Alert.alert('Scan Error', err.message ?? 'Could not capture photo.');
     } finally {
       setScanning(false);
-      setMode('manual');
+      // Camera stays open — user taps Done when finished
     }
-  }, []);
+  }, [scanSide, processImage]);
 
-  /**
-   * DEV UTILITY: Pick image from gallery for OCR testing.
-   * Useful when running on simulator or testing without physical card.
-   */
   const handlePickImage = useCallback(async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: false,
       quality: 1,
     });
-
     if (result.canceled || !result.assets[0]) return;
-
     setScanning(true);
     try {
-      await processOCR(result.assets[0].uri);
+      await processImage(result.assets[0].uri, scanSide);
     } finally {
       setScanning(false);
-      setMode('manual');
     }
-  }, []);
+  }, [scanSide, processImage]);
 
-  const processOCR = async (fileUri: string) => {
-    try {
-      const result = await TextRecognition.recognize(fileUri);
-      const parsed = parseCardFromOCR(result.text);
-
-      if (parsed.cardNumber) setCardNumber(parsed.cardNumber);
-      if (parsed.expiryMonth) setExpiryMonth(parsed.expiryMonth);
-      if (parsed.expiryYear) setExpiryYear(parsed.expiryYear);
-
-      if (!parsed.cardNumber && !parsed.expiryMonth) {
-        Alert.alert(
-          'No card data detected',
-          'Could not extract card details. Please fill in the form manually.',
-        );
-      }
-    } catch (err: any) {
-      Alert.alert('OCR Error', 'Could not read the image.');
-    }
-  };
-
-  const handleSwitchToScan = async () => {
+  const handleOpenCamera = async () => {
     if (!hasPermission) {
       const granted = await requestPermission();
       if (!granted) {
@@ -133,10 +178,17 @@ export default function AddCardScreen() {
         return;
       }
     }
-    setMode('scan');
+    setFrontScanned(false);
+    setBackScanned(false);
+    setScanSide('front');
+    setCameraOpen(true);
   };
 
-  // ── Save ──────────────────────────────────────────────────────────────────
+  const handleDoneScanning = () => {
+    setCameraOpen(false);
+  };
+
+  // ── Save ─────────────────────────────────────────────────────────────────────
 
   const handleSave = async () => {
     const cleanNumber = cardNumber.replace(/\D/g, '');
@@ -172,6 +224,10 @@ export default function AddCardScreen() {
         cvv: cvv.trim(),
         nickname: nickname.trim(),
         brand: detectCardBrand(cleanNumber),
+        bankName: bankName.trim() || undefined,
+        validFromMonth: validFromMonth || undefined,
+        validFromYear: validFromYear || undefined,
+        cardType: cardType.trim() || undefined,
       });
       router.back();
     } catch (err: any) {
@@ -181,9 +237,9 @@ export default function AddCardScreen() {
     }
   };
 
-  // ── Camera view ───────────────────────────────────────────────────────────
+  // ── Camera view ──────────────────────────────────────────────────────────────
 
-  if (mode === 'scan') {
+  if (cameraOpen) {
     return (
       <View style={styles.cameraContainer}>
         {device ? (
@@ -195,20 +251,41 @@ export default function AddCardScreen() {
               isActive
               photo
             />
-            {/* Overlay guide */}
+
+            {/* Front / Back toggle */}
+            <View style={styles.sidePill}>
+              <TouchableOpacity
+                style={[styles.pillBtn, scanSide === 'front' && styles.pillBtnActive]}
+                onPress={() => setScanSide('front')}
+              >
+                <Text style={[styles.pillText, scanSide === 'front' && styles.pillTextActive]}>
+                  {frontScanned ? '✓ ' : ''}Front
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.pillBtn, scanSide === 'back' && styles.pillBtnActive]}
+                onPress={() => setScanSide('back')}
+              >
+                <Text style={[styles.pillText, scanSide === 'back' && styles.pillTextActive]}>
+                  {backScanned ? '✓ ' : ''}Back
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Scan frame + hint */}
             <View style={styles.cameraOverlay}>
               <View style={styles.scanFrame} />
               <Text style={styles.scanHint}>
-                Align card within the frame
+                {scanSide === 'front' ? 'Align the front of your card' : 'Align the back of your card'}
               </Text>
             </View>
-            {/* Controls */}
+
+            {/* Controls: Cancel | Capture | Gallery */}
             <View style={styles.cameraControls}>
-              <TouchableOpacity
-                onPress={() => setMode('manual')}
-                style={styles.cancelBtn}
-              >
-                <Text style={styles.cancelBtnText}>Cancel</Text>
+              <TouchableOpacity onPress={handleDoneScanning} style={styles.cancelBtn}>
+                <Text style={styles.cancelBtnText}>
+                  {frontScanned || backScanned ? 'Done' : 'Cancel'}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -223,10 +300,7 @@ export default function AddCardScreen() {
                 )}
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={handlePickImage}
-                style={styles.galleryBtn}
-              >
+              <TouchableOpacity onPress={handlePickImage} style={styles.galleryBtn}>
                 <Text style={styles.galleryBtnText}>Gallery</Text>
               </TouchableOpacity>
             </View>
@@ -234,120 +308,162 @@ export default function AddCardScreen() {
         ) : (
           <View style={styles.noCameraContainer}>
             <Text style={styles.noCameraText}>No camera available</Text>
-            <ThemedButton
-              title="Go Back"
-              onPress={() => setMode('manual')}
-              variant="ghost"
-            />
+            <ThemedButton title="Go Back" onPress={handleDoneScanning} variant="ghost" />
           </View>
         )}
       </View>
     );
   }
 
-  // ── Manual form ───────────────────────────────────────────────────────────
+  // ── Manual form ──────────────────────────────────────────────────────────────
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
-          contentContainerStyle={styles.form}
-          keyboardShouldPersistTaps="handled"
+    // Outer View ensures the dark background is set during navigation transitions
+    <View style={styles.screenBg}>
+      <SafeAreaView style={styles.safe} edges={['bottom']}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.flex}
         >
-          {/* Scan shortcut */}
-          <TouchableOpacity
-            style={styles.scanButton}
-            onPress={handleSwitchToScan}
+          <ScrollView
+            contentContainerStyle={styles.form}
+            keyboardShouldPersistTaps="handled"
           >
-            <Text style={styles.scanButtonText}>📷  Scan Card with Camera</Text>
-          </TouchableOpacity>
+            {/* Scan shortcut */}
+            <TouchableOpacity style={styles.scanButton} onPress={handleOpenCamera}>
+              <Text style={styles.scanButtonText}>📷  Scan Card with Camera</Text>
+            </TouchableOpacity>
 
-          <Text style={styles.orDivider}>— or enter manually —</Text>
+            <Text style={styles.orDivider}>— or enter manually —</Text>
 
-          {/* Brand indicator */}
-          {cardNumber.replace(/\D/g, '').length > 0 && (
-            <View style={styles.brandRow}>
-              <Text style={styles.brandDetected}>
-                Detected: {brand.toUpperCase()}
-              </Text>
+            {/* Brand indicator */}
+            {cardNumber.replace(/\D/g, '').length > 0 && (
+              <View style={styles.brandRow}>
+                <Text style={styles.brandDetected}>
+                  {brand.toUpperCase()}{isAmex ? ' · 4-digit CVV on front' : ''}
+                </Text>
+              </View>
+            )}
+
+            {/* ── Core fields ── */}
+            <Field
+              label="Cardholder Name"
+              value={name}
+              onChangeText={setName}
+              placeholder="JOHN SMITH"
+              autoCapitalize="characters"
+            />
+
+            <Field
+              label="Card Number"
+              value={formatCardNumber(cardNumber)}
+              onChangeText={(t) => setCardNumber(t.replace(/\D/g, ''))}
+              placeholder={isAmex ? '3782 822463 10005' : '4242 4242 4242 4242'}
+              keyboardType="number-pad"
+              maxLength={cardNumberMaxLength(isAmex)}
+            />
+
+            <View style={styles.row}>
+              <View style={styles.rowField}>
+                <Field
+                  label="Expiry Month"
+                  value={expiryMonth}
+                  onChangeText={(t) => setExpiryMonth(t.replace(/\D/g, '').slice(0, 2))}
+                  placeholder="MM"
+                  keyboardType="number-pad"
+                  maxLength={2}
+                />
+              </View>
+              <View style={styles.rowField}>
+                <Field
+                  label="Expiry Year"
+                  value={expiryYear}
+                  onChangeText={(t) => setExpiryYear(t.replace(/\D/g, '').slice(0, 2))}
+                  placeholder="YY"
+                  keyboardType="number-pad"
+                  maxLength={2}
+                />
+              </View>
             </View>
-          )}
 
-          <Field
-            label="Cardholder Name"
-            value={name}
-            onChangeText={setName}
-            placeholder="John Smith"
-            autoCapitalize="words"
-          />
+            <Field
+              label={isAmex ? 'CVV (4 digits)' : 'CVV'}
+              value={cvv}
+              onChangeText={(t) => setCvv(t.replace(/\D/g, '').slice(0, cvvMaxLength))}
+              placeholder={isAmex ? '••••' : '•••'}
+              keyboardType="number-pad"
+              maxLength={cvvMaxLength}
+              secureTextEntry
+            />
 
-          <Field
-            label="Card Number"
-            value={formatCardNumber(cardNumber)}
-            onChangeText={(t) => setCardNumber(t.replace(/\D/g, ''))}
-            placeholder="4242 4242 4242 4242"
-            keyboardType="number-pad"
-            maxLength={19}
-          />
+            <Field
+              label="Nickname (optional)"
+              value={nickname}
+              onChangeText={setNickname}
+              placeholder="Travel Visa, Work Card…"
+              autoCapitalize="words"
+            />
 
-          <View style={styles.row}>
-            <View style={styles.rowField}>
+            {/* ── Extra fields — only shown when populated ── */}
+            {showValidFrom && (
+              <View style={styles.row}>
+                <View style={styles.rowField}>
+                  <Field
+                    label="Valid From Month"
+                    value={validFromMonth}
+                    onChangeText={(t) => setValidFromMonth(t.replace(/\D/g, '').slice(0, 2))}
+                    placeholder="MM"
+                    keyboardType="number-pad"
+                    maxLength={2}
+                  />
+                </View>
+                <View style={styles.rowField}>
+                  <Field
+                    label="Valid From Year"
+                    value={validFromYear}
+                    onChangeText={(t) => setValidFromYear(t.replace(/\D/g, '').slice(0, 2))}
+                    placeholder="YY"
+                    keyboardType="number-pad"
+                    maxLength={2}
+                  />
+                </View>
+              </View>
+            )}
+
+            {showBankName && (
               <Field
-                label="Expiry Month"
-                value={expiryMonth}
-                onChangeText={(t) => setExpiryMonth(t.replace(/\D/g, '').slice(0, 2))}
-                placeholder="MM"
-                keyboardType="number-pad"
-                maxLength={2}
+                label="Bank Name"
+                value={bankName}
+                onChangeText={setBankName}
+                placeholder="HDFC Bank, Chase…"
+                autoCapitalize="words"
               />
-            </View>
-            <View style={styles.rowField}>
-              <Field
-                label="Expiry Year"
-                value={expiryYear}
-                onChangeText={(t) => setExpiryYear(t.replace(/\D/g, '').slice(0, 2))}
-                placeholder="YY"
-                keyboardType="number-pad"
-                maxLength={2}
-              />
-            </View>
-            <View style={styles.rowField}>
-              <Field
-                label="CVV"
-                value={cvv}
-                onChangeText={(t) => setCvv(t.replace(/\D/g, '').slice(0, 4))}
-                placeholder="•••"
-                keyboardType="number-pad"
-                maxLength={4}
-                secureTextEntry
-              />
-            </View>
-          </View>
+            )}
 
-          <Field
-            label="Nickname (optional)"
-            value={nickname}
-            onChangeText={setNickname}
-            placeholder="Travel Visa, Work Card…"
-            autoCapitalize="words"
-          />
+            {showCardType && (
+              <Field
+                label="Card Type"
+                value={cardType}
+                onChangeText={setCardType}
+                placeholder="Debit, Coral, International Debit…"
+                autoCapitalize="words"
+              />
+            )}
 
-          <ThemedButton
-            title="Save Card"
-            onPress={handleSave}
-            loading={saving}
-            style={styles.saveBtn}
-          />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            <ThemedButton
+              title="Save Card"
+              onPress={handleSave}
+              loading={saving}
+              style={styles.saveBtn}
+            />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-// ── Small form field component ────────────────────────────────────────────────
+// ── Form field component ──────────────────────────────────────────────────────
 
 interface FieldProps {
   label: string;
@@ -391,9 +507,18 @@ function Field({
 }
 
 const styles = StyleSheet.create({
+  // Dark background on the outermost wrapper prevents white flash during transitions
+  screenBg: {
+    flex: 1,
+    backgroundColor: BG,
+  },
   safe: {
     flex: 1,
-    backgroundColor: '#0E0E0E',
+    backgroundColor: BG,
+  },
+  flex: {
+    flex: 1,
+    backgroundColor: BG,
   },
   form: {
     padding: 20,
@@ -459,10 +584,37 @@ const styles = StyleSheet.create({
   saveBtn: {
     marginTop: 8,
   },
-  // Camera styles
+  // ── Camera ──
   cameraContainer: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  sidePill: {
+    position: 'absolute',
+    top: 60,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    borderRadius: 24,
+    padding: 4,
+    gap: 2,
+    zIndex: 10,
+  },
+  pillBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 9,
+    borderRadius: 20,
+  },
+  pillBtnActive: {
+    backgroundColor: '#00C896',
+  },
+  pillText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  pillTextActive: {
+    color: '#000000',
   },
   cameraOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -485,6 +637,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+    textAlign: 'center',
   },
   cameraControls: {
     position: 'absolute',
@@ -498,11 +651,13 @@ const styles = StyleSheet.create({
   },
   cancelBtn: {
     padding: 12,
+    minWidth: 70,
+    alignItems: 'center',
   },
   cancelBtnText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   captureBtn: {
     width: 72,
@@ -527,6 +682,8 @@ const styles = StyleSheet.create({
   },
   galleryBtn: {
     padding: 12,
+    minWidth: 70,
+    alignItems: 'center',
   },
   galleryBtnText: {
     color: '#00C896',

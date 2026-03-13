@@ -18,23 +18,38 @@ import React, {
   useState,
 } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
+import { hasPin } from '../services/authService';
 
 const AUTO_LOCK_TIMEOUT_MS = 30_000; // 30 seconds
 
 interface AuthContextValue {
   isUnlocked: boolean;
+  pinExists: boolean | null;
+  refreshPinExists: () => Promise<void>;
   unlock: () => void;
   lock: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   isUnlocked: false,
+  pinExists: null,
+  refreshPinExists: async () => {},
   unlock: () => {},
   lock: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [pinExists, setPinExists] = useState<boolean | null>(null);
+
+  const refreshPinExists = useCallback(async () => {
+    const exists = await hasPin();
+    setPinExists(exists);
+  }, []);
+
+  useEffect(() => {
+    refreshPinExists();
+  }, []);
   const backgroundTimestamp = useRef<number | null>(null);
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
@@ -73,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isUnlocked, unlock, lock }}>
+    <AuthContext.Provider value={{ isUnlocked, pinExists, refreshPinExists, unlock, lock }}>
       {children}
     </AuthContext.Provider>
   );

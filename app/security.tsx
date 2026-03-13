@@ -13,7 +13,6 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -74,7 +73,7 @@ export default function SecurityScreen() {
           <Text style={styles.heroIcon}>🛡</Text>
           <Text style={styles.heroTitle}>Your Security</Text>
           <Text style={styles.heroSubtitle}>
-            Secure Card Vault was built from the ground up with your privacy
+            Card Vault was built from the ground up with your privacy
             as the top priority. Here is exactly how your data is protected.
           </Text>
         </View>
@@ -90,21 +89,9 @@ export default function SecurityScreen() {
           </View>
         ))}
 
-        {/* Technical summary */}
-        <View style={styles.techSummary}>
-          <Text style={styles.techTitle}>Technical Summary</Text>
-          <Text style={styles.techRow}>• Encryption: AES-256-CBC</Text>
-          <Text style={styles.techRow}>• Key storage: expo-secure-store (hardware-backed)</Text>
-          <Text style={styles.techRow}>• Key derivation (export): PBKDF2-SHA256, 100,000 iterations</Text>
-          <Text style={styles.techRow}>• Local database: SQLite (expo-sqlite)</Text>
-          <Text style={styles.techRow}>• Authentication: expo-local-authentication</Text>
-          <Text style={styles.techRow}>• IV: Random 128-bit IV per encryption</Text>
-          <Text style={styles.techRow}>• Network requests: None</Text>
-        </View>
-
         {/* Bottom note */}
         <Text style={styles.bottomNote}>
-          Secure Card Vault is a local-only app. Your cards are yours alone.
+          Card Vault is a local-only app. Your cards are yours alone.
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -169,27 +156,6 @@ const styles = StyleSheet.create({
   cardBody: {
     color: '#8E8E93',
     fontSize: 13,
-    lineHeight: 20,
-  },
-  techSummary: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 14,
-    padding: 16,
-    marginTop: 8,
-    gap: 6,
-  },
-  techTitle: {
-    color: '#00C896',
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
-  techRow: {
-    color: '#8E8E93',
-    fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     lineHeight: 20,
   },
   bottomNote: {
