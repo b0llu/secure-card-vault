@@ -24,6 +24,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -60,6 +61,9 @@ export default function AddCardScreen() {
   const cameraRef = useRef<Camera>(null);
 
   const [scanning, setScanning] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
+  const backPillScale = useRef(new Animated.Value(1)).current;
+  const flipHintOpacity = useRef(new Animated.Value(0)).current;
   const [cameraOpen, setCameraOpen] = useState(false);
   const [scanSide, setScanSide] = useState<ScanSide>('front');
   const [frontScanned, setFrontScanned] = useState(false);
@@ -115,6 +119,7 @@ export default function AddCardScreen() {
         if (parsed.cardType) setCardType(parsed.cardType);
 
         setFrontScanned(true);
+        setScanSide('back');
 
         if (!parsed.cardNumber && !parsed.expiryMonth) {
           setModal({
@@ -202,10 +207,30 @@ export default function AddCardScreen() {
     setCameraOpen(false);
   };
 
+  // Animate Back pill when auto-switching sides
+  useEffect(() => {
+    if (scanSide === 'back') {
+      Animated.sequence([
+        Animated.spring(backPillScale, { toValue: 1.22, useNativeDriver: true, speed: 28, bounciness: 14 }),
+        Animated.spring(backPillScale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 6 }),
+      ]).start();
+
+      Animated.sequence([
+        Animated.timing(flipHintOpacity, { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.delay(1400),
+        Animated.timing(flipHintOpacity, { toValue: 0, duration: 340, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [scanSide]);
+
   // Auto-close camera when both sides are scanned
   useEffect(() => {
     if (frontScanned && backScanned) {
-      const t = setTimeout(() => setCameraOpen(false), 700);
+      setTransitioning(true);
+      const t = setTimeout(() => {
+        setCameraOpen(false);
+        setTransitioning(false);
+      }, 900);
       return () => clearTimeout(t);
     }
   }, [frontScanned, backScanned]);
@@ -300,23 +325,31 @@ export default function AddCardScreen() {
               />
 
               {/* Front / Back toggle */}
-              <View style={styles.sidePill}>
-                <TouchableOpacity
-                  style={[styles.pillBtn, scanSide === 'front' && styles.pillBtnActive]}
-                  onPress={() => setScanSide('front')}
-                >
-                  <Text style={[styles.pillText, scanSide === 'front' && styles.pillTextActive]}>
-                    {frontScanned ? '✓ ' : ''}Front
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.pillBtn, scanSide === 'back' && styles.pillBtnActive]}
-                  onPress={() => setScanSide('back')}
-                >
-                  <Text style={[styles.pillText, scanSide === 'back' && styles.pillTextActive]}>
-                    {backScanned ? '✓ ' : ''}Back
-                  </Text>
-                </TouchableOpacity>
+              <View style={styles.pillWrapper}>
+                <View style={styles.sidePill}>
+                  <TouchableOpacity
+                    style={[styles.pillBtn, scanSide === 'front' && styles.pillBtnActive]}
+                    onPress={() => setScanSide('front')}
+                  >
+                    <Text style={[styles.pillText, scanSide === 'front' && styles.pillTextActive]}>
+                      {frontScanned ? '✓ ' : ''}Front
+                    </Text>
+                  </TouchableOpacity>
+                  <Animated.View style={{ transform: [{ scale: backPillScale }] }}>
+                    <TouchableOpacity
+                      style={[styles.pillBtn, scanSide === 'back' && styles.pillBtnActive]}
+                      onPress={() => setScanSide('back')}
+                    >
+                      <Text style={[styles.pillText, scanSide === 'back' && styles.pillTextActive]}>
+                        {backScanned ? '✓ ' : ''}Back
+                      </Text>
+                    </TouchableOpacity>
+                  </Animated.View>
+                </View>
+
+                <Animated.Text style={[styles.flipHint, { opacity: flipHintOpacity }]}>
+                  Flip your card
+                </Animated.Text>
               </View>
 
               {/* Scan frame + hint */}
@@ -338,19 +371,25 @@ export default function AddCardScreen() {
                 <TouchableOpacity
                   style={styles.captureBtn}
                   onPress={handleCapturePhoto}
-                  disabled={scanning}
+                  disabled={scanning || transitioning}
                 >
-                  {scanning ? (
-                    <ActivityIndicator color={theme.colors.primaryInk} />
-                  ) : (
-                    <View style={styles.captureBtnInner} />
-                  )}
+                  <View style={styles.captureBtnInner} />
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={handlePickImage} style={styles.galleryBtn}>
+                <TouchableOpacity onPress={handlePickImage} style={styles.galleryBtn} disabled={scanning || transitioning}>
                   <Text style={styles.galleryBtnText}>Gallery</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Full-screen overlay while OCR processes or transitioning */}
+              {(scanning || transitioning) && (
+                <View style={styles.scanningOverlay}>
+                  <ActivityIndicator size="large" color={theme.colors.primary} />
+                  <Text style={styles.scanningText}>
+                    {transitioning ? 'Preparing card data…' : 'Scanning…'}
+                  </Text>
+                </View>
+              )}
             </>
           ) : (
             <View style={styles.noCameraContainer}>
@@ -649,18 +688,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  sidePill: {
+  pillWrapper: {
     position: 'absolute',
     top: 60,
     alignSelf: 'center',
+    alignItems: 'center',
+    gap: 10,
+    zIndex: 10,
+  },
+  sidePill: {
     flexDirection: 'row',
     backgroundColor: 'rgba(8,8,8,0.80)',
     borderRadius: 24,
     padding: 4,
     gap: 2,
-    zIndex: 10,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
+  },
+  flipHint: {
+    color: theme.colors.primary,
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    backgroundColor: 'rgba(8,8,8,0.72)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
   pillBtn: {
     paddingHorizontal: 20,
@@ -761,5 +814,18 @@ const styles = StyleSheet.create({
   noCameraText: {
     color: theme.colors.textMuted,
     fontSize: 16,
+  },
+  scanningOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.78)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+    zIndex: 30,
+  },
+  scanningText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
