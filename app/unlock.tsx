@@ -69,11 +69,7 @@ export default function UnlockScreen() {
             <View style={styles.heroBadge}>
               <Feather name="shield" size={24} color={theme.colors.primary} />
             </View>
-            <Text style={styles.eyebrow}>Private vault</Text>
-            <Text style={styles.title}>Unlock Card Vault</Text>
-            <Text style={styles.subtitle}>
-              Enter your PIN to access the cards stored locally on this device.
-            </Text>
+            <Text style={styles.title}>Welcome back</Text>
           </View>
 
           <View style={styles.pinCard}>

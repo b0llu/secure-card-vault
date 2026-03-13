@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Sharing from 'expo-sharing';
 
 import { AppBackground } from '../src/components/AppBackground';
+import { AppModal, ModalConfig } from '../src/components/AppModal';
 import { ThemedButton } from '../src/components/ThemedButton';
 import {
   exportVault,
@@ -31,14 +31,23 @@ export default function ExportScreen() {
   const [savedPath, setSavedPath] = useState<string | null>(null);
   const [savedFilename, setSavedFilename] = useState<string | null>(null);
   const [savedLocation, setSavedLocation] = useState<string | null>(null);
+  const [modal, setModal] = useState<ModalConfig | null>(null);
 
   const handleExport = async () => {
     if (password.length < 6) {
-      Alert.alert('Weak Password', 'Export password must be at least 6 characters.');
+      setModal({
+        title: 'Weak Password',
+        message: 'Export password must be at least 6 characters.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Password Mismatch', 'Passwords do not match.');
+      setModal({
+        title: 'Password Mismatch',
+        message: 'Passwords do not match.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
       return;
     }
 
@@ -55,12 +64,13 @@ export default function ExportScreen() {
           );
         } catch (err: any) {
           visibleExport = localExport;
-          Alert.alert(
-            'Backup Saved Internally',
-            err?.message === 'Folder access was not granted.'
+          setModal({
+            title: 'Backup Saved Internally',
+            message: err?.message === 'Folder access was not granted.'
               ? 'The backup was saved inside the app. Use "Share / Move File" to place it in Downloads or another visible folder.'
               : 'The backup was created, but it could not be copied to a visible folder. Use "Share / Move File" to place it in Downloads or another folder.',
-          );
+            buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+          });
         }
       }
 
@@ -70,7 +80,11 @@ export default function ExportScreen() {
       setPassword('');
       setConfirmPassword('');
     } catch (err: any) {
-      Alert.alert('Export Failed', err.message ?? 'An unexpected error occurred.');
+      setModal({
+        title: 'Export Failed',
+        message: err.message ?? 'An unexpected error occurred.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
     } finally {
       setExporting(false);
     }
@@ -85,7 +99,11 @@ export default function ExportScreen() {
         UTI: 'public.data',
       });
     } catch {
-      Alert.alert('Share Failed', 'Could not open the share sheet.');
+      setModal({
+        title: 'Share Failed',
+        message: 'Could not open the share sheet.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
     }
   };
 
@@ -115,18 +133,9 @@ export default function ExportScreen() {
             </View>
 
             <View style={styles.stepsCard}>
-              <StepRow
-                number="1"
-                text="Decrypt locally using the device key."
-              />
-              <StepRow
-                number="2"
-                text="Derive a password key with PBKDF2-SHA256."
-              />
-              <StepRow
-                number="3"
-                text="Re-encrypt everything into a .securevault file."
-              />
+              <StepRow number="1" text="Decrypt locally using the device key." />
+              <StepRow number="2" text="Derive a password key with PBKDF2-SHA256." />
+              <StepRow number="3" text="Re-encrypt everything into a .securevault file." />
             </View>
 
             <View style={styles.formCard}>
@@ -137,13 +146,13 @@ export default function ExportScreen() {
                   value={password}
                   onChangeText={setPassword}
                   placeholder="At least 6 characters"
-                  placeholderTextColor={theme.colors.textSubtle}
+                  placeholderTextColor={theme.colors.textMuted}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
                 <TouchableOpacity
-                  onPress={() => setShowPassword((value) => !value)}
+                  onPress={() => setShowPassword((v) => !v)}
                   style={styles.showHideButton}
                 >
                   <Text style={styles.showHideText}>
@@ -159,7 +168,7 @@ export default function ExportScreen() {
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   placeholder="Re-enter password"
-                  placeholderTextColor={theme.colors.textSubtle}
+                  placeholderTextColor={theme.colors.textMuted}
                   secureTextEntry={!showConfirmPassword}
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -210,29 +219,22 @@ export default function ExportScreen() {
                 loading={exporting}
                 disabled={password.length < 6 || password !== confirmPassword}
                 icon={
-                  <Feather
-                    name="upload"
-                    size={18}
-                    color={theme.colors.primaryInk}
-                  />
+                  <Feather name="upload" size={18} color={theme.colors.primaryInk} />
                 }
               />
             )}
 
             <View style={styles.warningCard}>
-              <Feather
-                name="alert-triangle"
-                size={16}
-                color={theme.colors.warning}
-              />
+              <Feather name="alert-triangle" size={16} color={theme.colors.warning} />
               <Text style={styles.warningText}>
-                If you forget this export password, the backup cannot be
-                restored.
+                If you forget this export password, the backup cannot be restored.
               </Text>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      <AppModal config={modal} onDismiss={() => setModal(null)} />
     </AppBackground>
   );
 }
@@ -268,12 +270,7 @@ function PasswordStrength({ password }: { password: string }) {
           style={[
             styles.strengthFill,
             {
-              width:
-                strength === 'Weak'
-                  ? '33%'
-                  : strength === 'Fair'
-                    ? '66%'
-                    : '100%',
+              width: strength === 'Weak' ? '33%' : strength === 'Fair' ? '66%' : '100%',
               backgroundColor: color,
             },
           ]}
@@ -286,24 +283,18 @@ function PasswordStrength({ password }: { password: string }) {
 
 function getStrength(password: string): 'Weak' | 'Fair' | 'Strong' {
   if (password.length < 8) return 'Weak';
-
   const hasUpper = /[A-Z]/.test(password);
   const hasLower = /[a-z]/.test(password);
   const hasDigit = /\d/.test(password);
   const hasSymbol = /[^A-Za-z0-9]/.test(password);
   const score = [hasUpper, hasLower, hasDigit, hasSymbol].filter(Boolean).length;
-
   if (score <= 2) return 'Fair';
   return 'Strong';
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-  },
-  flex: {
-    flex: 1,
-  },
+  safe: { flex: 1 },
+  flex: { flex: 1 },
   container: {
     padding: 20,
     paddingBottom: 40,
@@ -327,10 +318,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroCopy: {
-    flex: 1,
-    gap: 4,
-  },
+  heroCopy: { flex: 1, gap: 4 },
   heroEyebrow: {
     color: theme.colors.primary,
     fontSize: 12,
@@ -389,7 +377,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   fieldLabel: {
-    color: theme.colors.textSubtle,
+    color: theme.colors.textMuted,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.8,
@@ -472,10 +460,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  successCopy: {
-    flex: 1,
-    gap: 3,
-  },
+  successCopy: { flex: 1, gap: 3 },
   successTitle: {
     color: theme.colors.success,
     fontSize: 14,

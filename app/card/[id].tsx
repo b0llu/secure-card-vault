@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -21,6 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { AppBackground } from '../../src/components/AppBackground';
+import { AppModal, ModalConfig } from '../../src/components/AppModal';
 import { CardView } from '../../src/components/CardView';
 import { ThemedButton } from '../../src/components/ThemedButton';
 import { deleteCard, getCardById } from '../../src/storage/database';
@@ -41,6 +41,7 @@ export default function CardDetailScreen() {
   const [showNumber, setShowNumber] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [modal, setModal] = useState<ModalConfig | null>(null);
 
   const cvvTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const numberTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -119,14 +120,13 @@ export default function CardDetailScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      'Delete Card',
-      'Are you sure you want to delete this card? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
+    setModal({
+      title: 'Delete Card',
+      message: 'Are you sure you want to delete this card? This action cannot be undone.',
+      buttons: [
         {
-          text: 'Delete',
-          style: 'destructive',
+          label: 'Delete',
+          variant: 'danger',
           onPress: async () => {
             if (!card) return;
             setDeleting(true);
@@ -134,8 +134,9 @@ export default function CardDetailScreen() {
             router.back();
           },
         },
+        { label: 'Cancel', variant: 'ghost', onPress: () => {} },
       ],
-    );
+    });
   };
 
   if (loading) {
@@ -211,7 +212,9 @@ export default function CardDetailScreen() {
               accent={showCVV}
             />
           </View>
+        </ScrollView>
 
+        <View style={styles.deleteFooter}>
           <ThemedButton
             title="Delete Card"
             variant="danger"
@@ -219,12 +222,14 @@ export default function CardDetailScreen() {
             loading={deleting}
             icon={<Feather name="trash-2" size={18} color={theme.colors.danger} />}
           />
-        </ScrollView>
+        </View>
 
         <Animated.View style={[styles.toast, toastStyle]} pointerEvents="none">
           <Text style={styles.toastText}>{copiedField}</Text>
         </Animated.View>
       </SafeAreaView>
+
+      <AppModal config={modal} onDismiss={() => setModal(null)} />
     </AppBackground>
   );
 }
@@ -292,8 +297,16 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 20,
     gap: 18,
+  },
+  deleteFooter: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    backgroundColor: theme.colors.background,
   },
   cardWrapper: {
     alignItems: 'center',

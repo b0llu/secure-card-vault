@@ -60,21 +60,21 @@ export function formatExpiry(month: string, year: string): string {
 
 export function getBrandGradient(brand: CardBrand): [string, string] {
   switch (brand) {
-    case 'visa':       return ['#1A1F71', '#2850A8'];
-    case 'mastercard': return ['#1C1C1C', '#3D3D3D'];
-    case 'amex':       return ['#007B5E', '#00A878'];
-    case 'discover':   return ['#FF6B00', '#C84B00'];
-    default:           return ['#1C1C1E', '#2C2C2E'];
+    case 'visa':       return ['#181818', '#2E2E2E'];
+    case 'mastercard': return ['#0A0A0A', '#1A1A1A'];
+    case 'amex':       return ['#1E1E1E', '#343434'];
+    case 'discover':   return ['#141414', '#242424'];
+    default:           return ['#161616', '#262626'];
   }
 }
 
 export function getBrandAccent(brand: CardBrand): string {
   switch (brand) {
     case 'visa':       return '#FFFFFF';
-    case 'mastercard': return '#F79E1B';
-    case 'amex':       return '#A3F0D6';
-    case 'discover':   return '#FFB347';
-    default:           return '#8E8E93';
+    case 'mastercard': return '#D0D0D0';
+    case 'amex':       return '#E8E8E8';
+    case 'discover':   return '#C0C0C0';
+    default:           return '#888888';
   }
 }
 

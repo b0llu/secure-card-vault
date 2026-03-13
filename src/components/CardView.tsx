@@ -57,11 +57,11 @@ export const CardView: React.FC<CardViewProps> = ({
 
       {/* Header row */}
       <View style={styles.header}>
-        <View style={styles.nicknameBadge}>
-          <Text style={[styles.nickname, { color: accent }]}>
-            {card.nickname || 'My Card'}
-          </Text>
-        </View>
+        {card.nickname ? (
+          <View style={styles.nicknameBadge}>
+            <Text style={[styles.nickname, { color: accent }]}>{card.nickname}</Text>
+          </View>
+        ) : <View />}
         <Text style={[styles.brandLabel, { color: accent }]}>
           {brandLabel}
         </Text>
@@ -72,9 +72,7 @@ export const CardView: React.FC<CardViewProps> = ({
           <Text style={styles.bankName} numberOfLines={1}>
             {card.bankName}
           </Text>
-        ) : (
-          <Text style={styles.bankName}>Stored securely on device</Text>
-        )}
+        ) : null}
       </View>
 
       {/* EMV Chip */}
@@ -174,7 +172,7 @@ const styles = StyleSheet.create({
   chip: {
     width: 42,
     height: 30,
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#C8C8C8',
     borderRadius: 8,
     justifyContent: 'space-evenly',
     paddingVertical: 4,
@@ -183,7 +181,7 @@ const styles = StyleSheet.create({
   },
   chipLine: {
     height: 1.5,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.25)',
     marginHorizontal: 2,
   },
   cardNumber: {

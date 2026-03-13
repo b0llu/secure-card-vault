@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -16,6 +15,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppBackground } from '../src/components/AppBackground';
+import { AppModal, ModalConfig } from '../src/components/AppModal';
 import { ThemedButton } from '../src/components/ThemedButton';
 import {
   decryptVaultFile,
@@ -28,7 +28,7 @@ import {
 } from '../src/storage/database';
 import { theme } from '../src/theme';
 
-const FREE_LIMIT = 3;
+// ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function ImportScreen() {
   const router = useRouter();
@@ -37,6 +37,12 @@ export default function ImportScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [modalConfig, setModalConfig] = useState<ModalConfig | null>(null);
+
+  const showModal = (config: ModalConfig) => setModalConfig(config);
+  const dismissModal = () => setModalConfig(null);
+
+  // ── File picker ──────────────────────────────────────────────────────────────
 
   const handlePickFile = async () => {
     try {
@@ -53,106 +59,114 @@ export default function ImportScreen() {
         !asset.name.endsWith(VAULT_FILE_EXTENSION) &&
         !asset.name.endsWith('.json')
       ) {
-        Alert.alert(
-          'Invalid File',
-          `Please select a ${VAULT_FILE_EXTENSION} backup file created by this app.`,
-        );
+        showModal({
+          title: 'Invalid File',
+          message: `Please select a ${VAULT_FILE_EXTENSION} backup file created by this app.`,
+          buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+        });
         return;
       }
 
       setFileUri(asset.uri);
       setFileName(asset.name);
     } catch (err: any) {
-      Alert.alert('File Picker Error', err.message);
+      showModal({
+        title: 'File Picker Error',
+        message: err.message,
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
     }
   };
 
-  const completeImport = async (
-    mode: 'replace' | 'merge',
-    cards: Awaited<ReturnType<typeof decryptVaultFile>>,
-    availableSlots: number,
-  ) => {
-    if (mode === 'replace') {
-      await clearAllCards();
-      const imported = await importCards(cards.slice(0, FREE_LIMIT));
-      setPassword('');
-      Alert.alert('Import Complete', `${imported} card(s) imported successfully.`, [
-        { text: 'Done', onPress: () => router.replace('/home') },
-      ]);
-      return;
-    }
+  // ── Import logic ─────────────────────────────────────────────────────────────
 
-    const imported = await importCards(cards.slice(0, availableSlots));
-    setPassword('');
-    Alert.alert('Import Complete', `${imported} card(s) imported successfully.`, [
-      { text: 'Done', onPress: () => router.replace('/home') },
-    ]);
+  const doImport = async (replace: boolean, cards: Awaited<ReturnType<typeof decryptVaultFile>>) => {
+    setImporting(true);
+    try {
+      if (replace) await clearAllCards();
+      const imported = await importCards(cards);
+      setPassword('');
+      showModal({
+        title: 'Import Complete',
+        message: `${imported} card(s) imported successfully.`,
+        buttons: [{ label: 'Done', onPress: () => router.replace('/home') }],
+      });
+    } catch (err: any) {
+      showModal({
+        title: 'Import Failed',
+        message: err.message ?? 'Could not import the backup.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
+    } finally {
+      setImporting(false);
+    }
   };
 
   const handleImport = async () => {
     if (!fileUri) {
-      Alert.alert('No File Selected', 'Please choose a backup file first.');
+      showModal({
+        title: 'No File Selected',
+        message: 'Please choose a backup file first.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
       return;
     }
 
     if (!password) {
-      Alert.alert('Password Required', 'Please enter the export password.');
+      showModal({
+        title: 'Password Required',
+        message: 'Please enter the export password.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
       return;
     }
 
     setImporting(true);
+    let cards: Awaited<ReturnType<typeof decryptVaultFile>>;
+    let existingCount: number;
+
     try {
-      const cards = await decryptVaultFile(fileUri, password);
-      const existingCount = await getCardCount();
-      const availableSlots = FREE_LIMIT - existingCount;
-
-      if (availableSlots === 0) {
-        Alert.alert(
-          'Card Limit Reached',
-          `Free version supports up to ${FREE_LIMIT} cards. Delete a card before importing.`,
-        );
-        return;
-      }
-
-      Alert.alert(
-        'Choose Import Mode',
-        `This backup contains ${cards.length} card(s). You currently have ${existingCount} card(s) stored.`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Replace All',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                await completeImport('replace', cards, availableSlots);
-              } finally {
-                setImporting(false);
-              }
-            },
-          },
-          {
-            text: `Add up to ${availableSlots}`,
-            onPress: async () => {
-              try {
-                await completeImport('merge', cards, availableSlots);
-              } finally {
-                setImporting(false);
-              }
-            },
-          },
-        ],
-      );
+      cards = await decryptVaultFile(fileUri, password);
+      existingCount = await getCardCount();
     } catch (err: any) {
-      Alert.alert(
-        'Import Failed',
-        err.message ?? 'Could not import the backup.',
-      );
+      showModal({
+        title: 'Import Failed',
+        message: err.message ?? 'Could not decrypt the backup.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
       setImporting(false);
       return;
     }
 
     setImporting(false);
+
+    // No existing cards — add directly, no prompt needed
+    if (existingCount === 0) {
+      await doImport(false, cards);
+      return;
+    }
+
+    // Cards exist — offer Replace or Add
+    showModal({
+      title: 'Import Mode',
+      message: `This backup has ${cards.length} card(s). You currently have ${existingCount} card(s) saved.`,
+      buttons: [
+        { label: 'Cancel', variant: 'ghost', onPress: () => {} },
+        {
+          label: 'Replace All',
+          variant: 'danger',
+          onPress: () => doImport(true, cards),
+        },
+        {
+          label: 'Add All',
+          variant: 'secondary',
+          onPress: () => doImport(false, cards),
+        },
+      ],
+    });
   };
+
+  // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
     <AppBackground>
@@ -167,11 +181,7 @@ export default function ImportScreen() {
           >
             <View style={styles.heroCard}>
               <View style={styles.heroIcon}>
-                <Feather
-                  name="download"
-                  size={20}
-                  color={theme.colors.primary}
-                />
+                <Feather name="download" size={20} color={theme.colors.primary} />
               </View>
               <View style={styles.heroCopy}>
                 <Text style={styles.heroEyebrow}>Restore</Text>
@@ -214,13 +224,13 @@ export default function ImportScreen() {
                   value={password}
                   onChangeText={setPassword}
                   placeholder="Password used when exporting"
-                  placeholderTextColor={theme.colors.textSubtle}
+                  placeholderTextColor={theme.colors.textMuted}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
                 <TouchableOpacity
-                  onPress={() => setShowPassword((value) => !value)}
+                  onPress={() => setShowPassword((v) => !v)}
                   style={styles.showHideButton}
                 >
                   <Text style={styles.showHideText}>
@@ -236,20 +246,12 @@ export default function ImportScreen() {
               loading={importing}
               disabled={!fileUri || !password}
               icon={
-                <Feather
-                  name="download"
-                  size={18}
-                  color={theme.colors.primaryInk}
-                />
+                <Feather name="download" size={18} color={theme.colors.primaryInk} />
               }
             />
 
             <View style={styles.noteCard}>
-              <Feather
-                name="shield"
-                size={16}
-                color={theme.colors.primary}
-              />
+              <Feather name="shield" size={16} color={theme.colors.primary} />
               <Text style={styles.noteText}>
                 Import happens entirely on-device. The password and card data are
                 never sent anywhere.
@@ -258,17 +260,17 @@ export default function ImportScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      <AppModal config={modalConfig} onDismiss={dismissModal} />
     </AppBackground>
   );
 }
 
+// ── Styles ────────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-  },
-  flex: {
-    flex: 1,
-  },
+  safe: { flex: 1 },
+  flex: { flex: 1 },
   container: {
     padding: 20,
     paddingBottom: 40,
@@ -292,10 +294,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroCopy: {
-    flex: 1,
-    gap: 4,
-  },
+  heroCopy: { flex: 1, gap: 4 },
   heroEyebrow: {
     color: theme.colors.primary,
     fontSize: 12,
@@ -322,7 +321,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   fieldLabel: {
-    color: theme.colors.textSubtle,
+    color: theme.colors.textMuted,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.8,
@@ -339,7 +338,7 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   filePickerSelected: {
-    borderColor: 'rgba(141, 201, 185, 0.28)',
+    borderColor: theme.colors.borderStrong,
     backgroundColor: theme.colors.primarySoft,
   },
   fileIconWrap: {
@@ -350,10 +349,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  fileCopy: {
-    flex: 1,
-    gap: 2,
-  },
+  fileCopy: { flex: 1, gap: 2 },
   fileTitle: {
     color: theme.colors.text,
     fontSize: 15,

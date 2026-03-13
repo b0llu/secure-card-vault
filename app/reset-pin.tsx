@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppBackground } from '../src/components/AppBackground';
+import { AppModal, ModalConfig } from '../src/components/AppModal';
 import { PinInput } from '../src/components/PinInput';
 import { changePin, verifyPin } from '../src/services/authService';
 import { sharedStyles, theme } from '../src/theme';
@@ -17,6 +18,7 @@ export default function ResetPinScreen() {
   const [currentPin, setCurrentPin] = useState('');
   const [nextPin, setNextPin] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [modal, setModal] = useState<ModalConfig | null>(null);
 
   const handleCurrentPin = async (pin: string) => {
     const isValid = await verifyPin(pin);
@@ -47,11 +49,17 @@ export default function ResetPinScreen() {
 
     try {
       await changePin(currentPin, pin);
-      Alert.alert('PIN Updated', 'Your vault PIN has been changed.', [
-        { text: 'Done', onPress: () => router.back() },
-      ]);
+      setModal({
+        title: 'PIN Updated',
+        message: 'Your vault PIN has been changed.',
+        buttons: [{ label: 'Done', onPress: () => router.back() }],
+      });
     } catch (err: any) {
-      Alert.alert('Could Not Update PIN', err.message ?? 'Try again.');
+      setModal({
+        title: 'Could Not Update PIN',
+        message: err.message ?? 'Try again.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
     }
   };
 
@@ -126,6 +134,8 @@ export default function ResetPinScreen() {
           </Text>
         </ScrollView>
       </SafeAreaView>
+
+      <AppModal config={modal} onDismiss={() => setModal(null)} />
     </AppBackground>
   );
 }
@@ -180,7 +190,7 @@ const styles = StyleSheet.create({
   },
   progressPillActive: {
     backgroundColor: theme.colors.primarySoft,
-    borderColor: 'rgba(141, 201, 185, 0.28)',
+    borderColor: theme.colors.borderStrong,
   },
   progressLabel: {
     color: theme.colors.textSubtle,

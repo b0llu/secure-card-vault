@@ -6,7 +6,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Alert,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,6 +13,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppBackground } from '../src/components/AppBackground';
+import { AppModal, ModalConfig } from '../src/components/AppModal';
 import { ThemedButton } from '../src/components/ThemedButton';
 import { Card } from '../src/types';
 import { getCardCount, getCards } from '../src/storage/database';
@@ -31,6 +31,7 @@ export default function HomeScreen() {
   const [cards, setCards] = useState<Card[]>([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState<ModalConfig | null>(null);
 
   const remainingSlots = Math.max(FREE_LIMIT - count, 0);
 
@@ -62,10 +63,11 @@ export default function HomeScreen() {
 
   const handleAddCard = () => {
     if (count >= FREE_LIMIT) {
-      Alert.alert(
-        'Card Limit Reached',
-        'Free version supports up to 3 cards. Delete a card to add a new one.',
-      );
+      setModal({
+        title: 'Card Limit Reached',
+        message: 'Free version supports up to 3 cards. Delete a card to add a new one.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
       return;
     }
 
@@ -89,11 +91,11 @@ export default function HomeScreen() {
         >
           <View style={styles.cardRowTop}>
             <Text style={styles.cardBrand}>{brandLabel}</Text>
-            <View style={styles.cardNicknamePill}>
-              <Text style={styles.cardNicknamePillText}>
-                {item.nickname || 'Quick access'}
-              </Text>
-            </View>
+            {item.nickname ? (
+              <View style={styles.cardNicknamePill}>
+                <Text style={styles.cardNicknamePillText}>{item.nickname}</Text>
+              </View>
+            ) : null}
           </View>
 
           <Text style={styles.cardNumber}>{maskCardNumber(item.cardNumber)}</Text>
@@ -104,7 +106,7 @@ export default function HomeScreen() {
                 {item.name}
               </Text>
               <Text style={styles.cardFooterMeta} numberOfLines={1}>
-                {item.bankName || 'Stored securely on this device'}
+                {item.bankName}
               </Text>
             </View>
             <Feather
@@ -190,6 +192,8 @@ export default function HomeScreen() {
           />
         </View>
       </SafeAreaView>
+
+      <AppModal config={modal} onDismiss={() => setModal(null)} />
     </AppBackground>
   );
 }

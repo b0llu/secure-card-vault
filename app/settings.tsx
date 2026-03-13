@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Switch,
@@ -13,6 +12,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppBackground } from '../src/components/AppBackground';
+import { AppModal, ModalConfig } from '../src/components/AppModal';
 import { useAuth } from '../src/context/AuthContext';
 import {
   getBiometricType,
@@ -32,6 +32,7 @@ export default function SettingsScreen() {
   const [biometricsEnabled, setBiometricsEnabledState] = useState(false);
   const [biometricLabel, setBiometricLabel] = useState('Biometrics');
   const [updatingBiometrics, setUpdatingBiometrics] = useState(false);
+  const [modal, setModal] = useState<ModalConfig | null>(null);
 
   const loadSettings = useCallback(async () => {
     const [totalCards, available, enabled] = await Promise.all([
@@ -54,10 +55,11 @@ export default function SettingsScreen() {
 
   const handleToggleBiometrics = async (value: boolean) => {
     if (!biometricsAvailable) {
-      Alert.alert(
-        'Biometrics Unavailable',
-        'This device does not have Face ID or fingerprint unlock set up.',
-      );
+      setModal({
+        title: 'Biometrics Unavailable',
+        message: 'This device does not have Face ID or fingerprint unlock set up.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
       return;
     }
 
@@ -68,7 +70,11 @@ export default function SettingsScreen() {
       await persistBiometricsEnabled(value);
     } catch (err: any) {
       setBiometricsEnabledState(!value);
-      Alert.alert('Could Not Update Setting', err.message ?? 'Try again.');
+      setModal({
+        title: 'Could Not Update Setting',
+        message: err.message ?? 'Try again.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
     } finally {
       setUpdatingBiometrics(false);
     }
@@ -90,11 +96,7 @@ export default function SettingsScreen() {
           <View style={styles.section}>
             <View style={styles.row}>
               <View style={styles.rowIconWrap}>
-                <Feather
-                  name="shield"
-                  size={18}
-                  color={theme.colors.primary}
-                />
+                <Feather name="shield" size={18} color={theme.colors.primary} />
               </View>
               <View style={styles.rowCopy}>
                 <Text style={styles.rowTitle}>{biometricLabel}</Text>
@@ -110,12 +112,10 @@ export default function SettingsScreen() {
                 disabled={!biometricsAvailable || updatingBiometrics}
                 trackColor={{
                   false: 'rgba(154,169,183,0.25)',
-                  true: 'rgba(200,160,80,0.45)',
+                  true: 'rgba(235,235,235,0.30)',
                 }}
                 thumbColor={
-                  biometricsEnabled
-                    ? theme.colors.primary
-                    : theme.colors.textMuted
+                  biometricsEnabled ? theme.colors.primary : theme.colors.textMuted
                 }
               />
             </View>
@@ -162,11 +162,7 @@ export default function SettingsScreen() {
           </View>
 
           <View style={styles.footerNote}>
-            <Feather
-              name="moon"
-              size={16}
-              color={theme.colors.textSubtle}
-            />
+            <Feather name="moon" size={16} color={theme.colors.textSubtle} />
             <Text style={styles.footerNoteText}>
               The vault auto-locks after 30 seconds in the background. All card
               data stays on this device.
@@ -174,6 +170,8 @@ export default function SettingsScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      <AppModal config={modal} onDismiss={() => setModal(null)} />
     </AppBackground>
   );
 }
@@ -194,11 +192,7 @@ function SettingRow({
   onPress: () => void;
 }) {
   return (
-    <TouchableOpacity
-      activeOpacity={0.82}
-      onPress={onPress}
-      style={styles.row}
-    >
+    <TouchableOpacity activeOpacity={0.82} onPress={onPress} style={styles.row}>
       <View style={styles.rowIconWrap}>
         <Feather name={icon} size={18} color={theme.colors.primary} />
       </View>
@@ -206,11 +200,7 @@ function SettingRow({
         <Text style={styles.rowTitle}>{title}</Text>
         <Text style={styles.rowSubtitle}>{subtitle}</Text>
       </View>
-      <Feather
-        name="chevron-right"
-        size={18}
-        color={theme.colors.textSubtle}
-      />
+      <Feather name="chevron-right" size={18} color={theme.colors.textSubtle} />
     </TouchableOpacity>
   );
 }
@@ -241,10 +231,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroCopy: {
-    flex: 1,
-    gap: 4,
-  },
+  heroCopy: { flex: 1, gap: 4 },
   heroEyebrow: {
     color: theme.colors.primary,
     fontSize: 12,
@@ -315,10 +302,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rowCopy: {
-    flex: 1,
-    gap: 2,
-  },
+  rowCopy: { flex: 1, gap: 2 },
   rowTitle: {
     color: theme.colors.text,
     fontSize: 15,

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,6 +9,7 @@ import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppBackground } from '../src/components/AppBackground';
+import { AppModal, ModalConfig } from '../src/components/AppModal';
 import { PinInput } from '../src/components/PinInput';
 import { ThemedButton } from '../src/components/ThemedButton';
 import { useAuth } from '../src/context/AuthContext';
@@ -27,6 +27,7 @@ export default function SetupPinScreen() {
   const [step, setStep] = useState<Step>('create');
   const [firstPin, setFirstPin] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [modal, setModal] = useState<ModalConfig | null>(null);
 
   const handleCreate = async (pin: string) => {
     setFirstPin(pin);
@@ -52,7 +53,11 @@ export default function SetupPinScreen() {
         unlock();
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message);
+      setModal({
+        title: 'Error',
+        message: err.message,
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
     }
   };
 
@@ -85,11 +90,7 @@ export default function SetupPinScreen() {
                 onPress={() => handleEnableBiometrics(true)}
                 style={styles.button}
                 icon={
-                  <Feather
-                    name="shield"
-                    size={18}
-                    color={theme.colors.primaryInk}
-                  />
+                  <Feather name="shield" size={18} color={theme.colors.primaryInk} />
                 }
               />
               <ThemedButton
@@ -101,6 +102,8 @@ export default function SetupPinScreen() {
             </View>
           </ScrollView>
         </SafeAreaView>
+
+        <AppModal config={modal} onDismiss={() => setModal(null)} />
       </AppBackground>
     );
   }
@@ -138,6 +141,8 @@ export default function SetupPinScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      <AppModal config={modal} onDismiss={() => setModal(null)} />
     </AppBackground>
   );
 }
@@ -174,9 +179,7 @@ function FeaturePill({ label }: { label: string }) {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-  },
+  safe: { flex: 1 },
   container: {
     flexGrow: 1,
     justifyContent: 'center',
