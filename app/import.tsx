@@ -179,18 +179,10 @@ export default function ImportScreen() {
             contentContainerStyle={styles.container}
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.heroCard}>
-              <View style={styles.heroIcon}>
-                <Feather name="download" size={20} color={theme.colors.primary} />
-              </View>
-              <View style={styles.heroCopy}>
-                <Text style={styles.heroEyebrow}>Restore</Text>
-                <Text style={styles.heroTitle}>Import a backup</Text>
-                <Text style={styles.heroText}>
-                  Pick a previously exported file and unlock it with the same
-                  password you used during export.
-                </Text>
-              </View>
+            <View style={styles.stepsCard}>
+              <StepRow icon="file-text" text="Pick your .securevault backup file" />
+              <StepRow icon="key" text="Enter the password you used when exporting" />
+              <StepRow icon="check-circle" text="Cards are decrypted and restored to your vault" />
             </View>
 
             <View style={styles.formCard}>
@@ -266,6 +258,19 @@ export default function ImportScreen() {
   );
 }
 
+// ── StepRow ───────────────────────────────────────────────────────────────────
+
+function StepRow({ icon, text }: { icon: React.ComponentProps<typeof Feather>['name']; text: string }) {
+  return (
+    <View style={styles.stepRow}>
+      <View style={styles.stepIcon}>
+        <Feather name={icon} size={15} color={theme.colors.primary} />
+      </View>
+      <Text style={styles.stepText}>{text}</Text>
+    </View>
+  );
+}
+
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
@@ -276,41 +281,34 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     gap: 18,
   },
-  heroCard: {
-    backgroundColor: theme.colors.surfaceElevated,
-    borderRadius: 24,
+  stepsCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: theme.colors.borderStrong,
-    padding: 20,
-    flexDirection: 'row',
-    gap: 16,
-    alignItems: 'flex-start',
+    borderColor: theme.colors.border,
+    padding: 18,
+    gap: 14,
   },
-  heroIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+  stepRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+  },
+  stepIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     backgroundColor: theme.colors.primarySoft,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroCopy: { flex: 1, gap: 4 },
-  heroEyebrow: {
-    color: theme.colors.primary,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
-  heroTitle: {
-    color: theme.colors.text,
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  heroText: {
+  stepText: {
+    flex: 1,
     color: theme.colors.textMuted,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 13,
+    lineHeight: 19,
   },
   formCard: {
     backgroundColor: theme.colors.surface,
@@ -364,7 +362,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    paddingHorizontal: 14,
     paddingVertical: 14,
     color: theme.colors.text,
     fontSize: 16,

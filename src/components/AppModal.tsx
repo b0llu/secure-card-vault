@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Modal,
   StyleSheet,
@@ -26,20 +26,24 @@ interface AppModalProps {
 }
 
 export function AppModal({ config, onDismiss }: AppModalProps) {
+  // Preserve last config so content stays visible during the fade-out animation
+  const lastConfig = useRef(config);
+  if (config !== null) lastConfig.current = config;
+  const display = config ?? lastConfig.current;
+
   return (
     <Modal
       visible={config !== null}
       transparent
       animationType="fade"
-      statusBarTranslucent
       onRequestClose={onDismiss}
     >
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.title}>{config?.title}</Text>
-          <Text style={styles.message}>{config?.message}</Text>
+          <Text style={styles.title}>{display?.title}</Text>
+          <Text style={styles.message}>{display?.message}</Text>
           <View style={styles.buttons}>
-            {config?.buttons.map((btn, i) => (
+            {display?.buttons.map((btn, i) => (
               <TouchableOpacity
                 key={i}
                 style={[styles.btn, btnSurface(btn.variant)]}

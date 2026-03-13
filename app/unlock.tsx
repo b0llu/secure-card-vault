@@ -98,13 +98,6 @@ export default function UnlockScreen() {
   );
 }
 
-function InfoPill({ label }: { label: string }) {
-  return (
-    <View style={styles.infoPill}>
-      <Text style={styles.infoPillText}>{label}</Text>
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   safe: {

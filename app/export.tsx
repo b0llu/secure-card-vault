@@ -118,24 +118,10 @@ export default function ExportScreen() {
             contentContainerStyle={styles.container}
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.heroCard}>
-              <View style={styles.heroIcon}>
-                <Feather name="upload" size={20} color={theme.colors.primary} />
-              </View>
-              <View style={styles.heroCopy}>
-                <Text style={styles.heroEyebrow}>Backup</Text>
-                <Text style={styles.heroTitle}>Export encrypted vault</Text>
-                <Text style={styles.heroText}>
-                  Your cards are re-encrypted with a password before the backup
-                  file is shared.
-                </Text>
-              </View>
-            </View>
-
             <View style={styles.stepsCard}>
-              <StepRow number="1" text="Decrypt locally using the device key." />
-              <StepRow number="2" text="Derive a password key with PBKDF2-SHA256." />
-              <StepRow number="3" text="Re-encrypt everything into a .securevault file." />
+              <StepRow icon="lock" text="Set a password only you'll know" />
+              <StepRow icon="shield" text="Cards are re-encrypted before leaving the app" />
+              <StepRow icon="save" text="Backup file saved to your device, ready to share" />
             </View>
 
             <View style={styles.formCard}>
@@ -239,11 +225,11 @@ export default function ExportScreen() {
   );
 }
 
-function StepRow({ number, text }: { number: string; text: string }) {
+function StepRow({ icon, text }: { icon: React.ComponentProps<typeof Feather>['name']; text: string }) {
   return (
     <View style={styles.stepRow}>
-      <View style={styles.stepBadge}>
-        <Text style={styles.stepBadgeText}>{number}</Text>
+      <View style={styles.stepIcon}>
+        <Feather name={icon} size={15} color={theme.colors.primary} />
       </View>
       <Text style={styles.stepText}>{text}</Text>
     </View>
@@ -300,42 +286,6 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     gap: 18,
   },
-  heroCard: {
-    backgroundColor: theme.colors.surfaceElevated,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: theme.colors.borderStrong,
-    padding: 20,
-    flexDirection: 'row',
-    gap: 16,
-    alignItems: 'flex-start',
-  },
-  heroIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: theme.colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroCopy: { flex: 1, gap: 4 },
-  heroEyebrow: {
-    color: theme.colors.primary,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
-  heroTitle: {
-    color: theme.colors.text,
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  heroText: {
-    color: theme.colors.textMuted,
-    fontSize: 14,
-    lineHeight: 21,
-  },
   stepsCard: {
     backgroundColor: theme.colors.surface,
     borderRadius: 22,
@@ -349,18 +299,15 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: 'center',
   },
-  stepBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  stepIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     backgroundColor: theme.colors.primarySoft,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  stepBadgeText: {
-    color: theme.colors.primary,
-    fontSize: 13,
-    fontWeight: '700',
   },
   stepText: {
     flex: 1,

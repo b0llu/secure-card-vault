@@ -78,6 +78,7 @@ export default function ResetPinScreen() {
         : 'Re-enter the new PIN to confirm the change.';
 
   return (
+    <>
     <AppBackground>
       <SafeAreaView style={sharedStyles.safeArea}>
         <ScrollView contentContainerStyle={styles.container}>
@@ -135,8 +136,9 @@ export default function ResetPinScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <AppModal config={modal} onDismiss={() => setModal(null)} />
     </AppBackground>
+    <AppModal config={modal} onDismiss={() => setModal(null)} />
+    </>
   );
 }
 
@@ -145,7 +147,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingTop: 8,
+    paddingBottom: 40,
     gap: 22,
   },
   hero: {
