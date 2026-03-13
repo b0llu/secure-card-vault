@@ -8,6 +8,7 @@
 import 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { usePreventScreenCapture } from 'expo-screen-capture';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -18,6 +19,7 @@ import { AuthProvider, useAuth } from '../src/context/AuthContext';
 // ─── Navigation guard ─────────────────────────────────────────────────────────
 
 function NavigationGuard({ children }: { children: React.ReactNode }) {
+  usePreventScreenCapture();
   const { isUnlocked, pinExists } = useAuth();
   const segments = useSegments();
   const router = useRouter();

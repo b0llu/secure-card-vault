@@ -59,6 +59,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     // Custom plugin to add FLAG_SECURE (screenshot prevention) on Android
     './plugins/withAndroidSecureFlag',
+    // Pin android.kotlinVersion so expo-modules-core picks the Compose compiler
+    // version that matches react-native's kotlin-gradle-plugin (1.9.24).
+    './plugins/withKotlinVersion',
   ],
   experiments: {
     typedRoutes: true,
