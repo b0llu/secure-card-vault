@@ -83,15 +83,8 @@ export default function AddCardScreen() {
   const processImage = useCallback(async (fileUri: string) => {
     try {
       const result = await TextRecognition.recognize(fileUri);
-      const recognizedText = result.text;
-
-      console.log('──────────────────────────────────────');
-      console.log('OCR [FRONT] raw text:');
-      console.log(recognizedText);
-      console.log('──────────────────────────────────────');
 
       const parsed = parseCardFromOCR(result);
-      console.log('OCR [FRONT] parsed result:', JSON.stringify(parsed, null, 2));
       const hasDetectedData = Boolean(
         parsed.cardNumber ||
         parsed.expiryMonth ||
@@ -335,7 +328,7 @@ export default function AddCardScreen() {
                 {cardNumber.replace(/\D/g, '').length > 0 && (
                   <View style={styles.brandRow}>
                     <Text style={styles.brandDetected}>
-                      {brand.toUpperCase()}{isAmex ? ' · 4-digit CVV on front' : ''}
+                      {brand.toUpperCase()}
                     </Text>
                   </View>
                 )}

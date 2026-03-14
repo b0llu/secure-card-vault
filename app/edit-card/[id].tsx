@@ -142,7 +142,7 @@ export default function EditCardScreen() {
               {brand !== 'unknown' && (
                 <View style={styles.brandRow}>
                   <Text style={styles.brandDetected}>
-                    {brand.toUpperCase()}{isAmex ? ' · 4-digit CVV on front' : ''}
+                    {brand.toUpperCase()}
                   </Text>
                 </View>
               )}
