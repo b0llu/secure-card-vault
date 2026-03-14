@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -15,12 +15,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppBackground } from '../../src/components/AppBackground';
+import { CardAppearanceEditor } from '../../src/components/CardAppearanceEditor';
 import { CardBrandPicker } from '../../src/components/CardBrandPicker';
 import { AppModal, ModalConfig } from '../../src/components/AppModal';
 import { ThemedButton } from '../../src/components/ThemedButton';
 import { getCardById, updateCard } from '../../src/storage/database';
 import { detectCardBrand, formatCardNumber, isValidExpiry } from '../../src/utils/cardUtils';
-import { CardBrand } from '../../src/types';
+import { Card, CardBrand, CardThemeColorSource } from '../../src/types';
 import { theme } from '../../src/theme';
 
 const PLACEHOLDER_COLOR = theme.colors.textMuted;
@@ -35,6 +36,9 @@ export default function EditCardScreen() {
   const [selectedBrand, setSelectedBrand] = useState<CardBrand>('unknown');
   const [customBrandName, setCustomBrandName] = useState('');
   const [brandManuallySet, setBrandManuallySet] = useState(false);
+  const [themeColor, setThemeColor] = useState<string | undefined>(undefined);
+  const [detectedThemeColor, setDetectedThemeColor] = useState<string | undefined>(undefined);
+  const [themeColorSource, setThemeColorSource] = useState<CardThemeColorSource | undefined>(undefined);
 
   // Form fields
   const [name, setName] = useState('');
@@ -52,6 +56,50 @@ export default function EditCardScreen() {
   const detectedBrand = detectCardBrand(cardNumber);
   const isAmex = detectedBrand === 'amex';
   const cvvMaxLength = isAmex ? 4 : 3;
+
+  const previewCard = useMemo<Card>(() => {
+    const previewBrand = selectedBrand;
+    const previewNumber =
+      cardNumber || (previewBrand === 'amex' ? '378282246310005' : '4242424242424242');
+    const previewExpiryMonth = expiryMonth || '12';
+    const previewExpiryYear = expiryYear || '30';
+    const previewCvv = cvv || (previewBrand === 'amex' ? '1234' : '123');
+
+    return {
+      id: 'preview',
+      name: name || 'CARD HOLDER',
+      cardNumber: previewNumber,
+      expiryMonth: previewExpiryMonth,
+      expiryYear: previewExpiryYear,
+      cvv: previewCvv,
+      nickname,
+      brand: previewBrand,
+      customBrandName: selectedBrand === 'custom' ? customBrandName.trim() || 'Custom' : undefined,
+      bankName: bankName.trim() || undefined,
+      validFromMonth: validFromMonth || undefined,
+      validFromYear: validFromYear || undefined,
+      cardType: cardType.trim() || undefined,
+      themeColor,
+      detectedThemeColor,
+      themeColorSource,
+    };
+  }, [
+    bankName,
+    cardNumber,
+    cardType,
+    customBrandName,
+    cvv,
+    detectedThemeColor,
+    expiryMonth,
+    expiryYear,
+    name,
+    nickname,
+    selectedBrand,
+    themeColor,
+    themeColorSource,
+    validFromMonth,
+    validFromYear,
+  ]);
 
   useEffect(() => {
     if (!brandManuallySet) {
@@ -77,6 +125,9 @@ export default function EditCardScreen() {
         setValidFromYear(card.validFromYear ?? '');
         setSelectedBrand(card.brand);
         setCustomBrandName(card.customBrandName ?? '');
+        setThemeColor(card.themeColor);
+        setDetectedThemeColor(card.detectedThemeColor);
+        setThemeColorSource(card.themeColorSource);
         setBrandManuallySet(
           card.brand === 'custom' ||
           card.brand !== detectCardBrand(card.cardNumber) ||
@@ -93,6 +144,14 @@ export default function EditCardScreen() {
       setCustomBrandName('');
     }
     setBrandManuallySet(brand === 'custom' || brand !== detectedBrand);
+  };
+
+  const handleAppearanceChange = (appearance: {
+    themeColor?: string;
+    themeColorSource?: CardThemeColorSource;
+  }) => {
+    setThemeColor(appearance.themeColor);
+    setThemeColorSource(appearance.themeColor ? appearance.themeColorSource : undefined);
   };
 
   const handleSave = async () => {
@@ -138,6 +197,9 @@ export default function EditCardScreen() {
         validFromMonth: validFromMonth || undefined,
         validFromYear: validFromYear || undefined,
         cardType: cardType.trim() || undefined,
+        themeColor,
+        detectedThemeColor,
+        themeColorSource: themeColor ? themeColorSource : undefined,
       });
       router.back();
     } catch (err: any) {
@@ -236,6 +298,14 @@ export default function EditCardScreen() {
               <Field label="Bank Name" value={bankName} onChangeText={setBankName} placeholder="Chase, Barclays, HDFC…" autoCapitalize="words" />
 
               <Field label="Card Type" value={cardType} onChangeText={setCardType} placeholder="Debit, Credit, Prepaid…" autoCapitalize="words" />
+
+              <CardAppearanceEditor
+                previewCard={previewCard}
+                themeColor={themeColor}
+                detectedThemeColor={detectedThemeColor}
+                themeColorSource={themeColorSource}
+                onChange={handleAppearanceChange}
+              />
             </ScrollView>
 
             <View style={styles.footer}>

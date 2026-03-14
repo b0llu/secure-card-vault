@@ -20,9 +20,9 @@ import { Card } from '../src/types';
 import { getCardCount, getCards } from '../src/storage/database';
 import {
   getBrandDisplayName,
-  getBrandGradient,
   maskCardNumber,
 } from '../src/utils/cardUtils';
+import { getResolvedCardAppearance } from '../src/utils/cardAppearance';
 import { theme } from '../src/theme';
 
 type GroupingKey = 'none' | 'brand' | 'bank' | 'type' | 'expiry';
@@ -156,7 +156,7 @@ export default function HomeScreen() {
   };
 
   const renderCard = ({ item }: { item: Card }) => {
-    const gradient = getBrandGradient(item.brand);
+    const appearance = getResolvedCardAppearance(item);
     const brandLabel = getBrandDisplayName(item.brand, item.customBrandName) || 'STORED CARD';
 
     return (
@@ -165,35 +165,51 @@ export default function HomeScreen() {
         onPress={() => router.push(`/card/${item.id}`)}
       >
         <LinearGradient
-          colors={gradient}
+          colors={appearance.gradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.cardRow}
         >
           <View style={styles.cardRowTop}>
-            <Text style={styles.cardBrand}>{brandLabel}</Text>
+            <Text style={[styles.cardBrand, { color: appearance.mutedText }]}>
+              {brandLabel}
+            </Text>
             {item.nickname ? (
-              <View style={styles.cardNicknamePill}>
-                <Text style={styles.cardNicknamePillText}>{item.nickname}</Text>
+              <View
+                style={[
+                  styles.cardNicknamePill,
+                  {
+                    backgroundColor: appearance.badgeBackground,
+                    borderColor: appearance.badgeBorder,
+                  },
+                ]}
+              >
+                <Text
+                  style={[styles.cardNicknamePillText, { color: appearance.text }]}
+                >
+                  {item.nickname}
+                </Text>
               </View>
             ) : null}
           </View>
 
-          <Text style={styles.cardNumber}>{maskCardNumber(item.cardNumber)}</Text>
+          <Text style={[styles.cardNumber, { color: appearance.text }]}>
+            {maskCardNumber(item.cardNumber)}
+          </Text>
 
           <View style={styles.cardFooter}>
             <View style={styles.cardFooterCopy}>
-              <Text style={styles.cardFooterName} numberOfLines={1}>
+              <Text style={[styles.cardFooterName, { color: appearance.text }]} numberOfLines={1}>
                 {item.name}
               </Text>
-              <Text style={styles.cardFooterMeta} numberOfLines={1}>
+              <Text style={[styles.cardFooterMeta, { color: appearance.mutedText }]} numberOfLines={1}>
                 {item.bankName}
               </Text>
             </View>
             <Feather
               name="chevron-right"
               size={18}
-              color="rgba(255,255,255,0.72)"
+              color={appearance.chevronColor}
             />
           </View>
         </LinearGradient>
@@ -473,7 +489,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   cardBrand: {
-    color: 'rgba(255,255,255,0.72)',
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.2,
@@ -483,17 +498,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.16)',
   },
   cardNicknamePillText: {
-    color: theme.colors.white,
     fontSize: 11,
     fontWeight: '600',
   },
   cardNumber: {
-    color: theme.colors.white,
     fontSize: 19,
     fontWeight: '600',
     letterSpacing: 2.8,
@@ -508,12 +519,10 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   cardFooterName: {
-    color: theme.colors.white,
     fontSize: 14,
     fontWeight: '600',
   },
   cardFooterMeta: {
-    color: 'rgba(255,255,255,0.68)',
     fontSize: 12,
   },
   emptyCard: {

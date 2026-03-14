@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,13 +12,6 @@ import { Feather } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
 
 import { AppBackground } from '../../src/components/AppBackground';
 import { AppModal, ModalConfig } from '../../src/components/AppModal';
@@ -47,18 +41,16 @@ export default function CardDetailScreen() {
   const numberTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clipboardTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const toastOpacity = useSharedValue(0);
-  const toastStyle = useAnimatedStyle(() => ({
-    opacity: toastOpacity.value,
-  }));
+  const toastOpacity = useRef(new Animated.Value(0)).current;
 
   const showToast = useCallback(
     (field: string) => {
       setCopiedField(field);
-      toastOpacity.value = withSequence(
-        withTiming(1, { duration: 200 }),
-        withDelay(1800, withTiming(0, { duration: 300 })),
-      );
+      Animated.sequence([
+        Animated.timing(toastOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.delay(1800),
+        Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+      ]).start();
     },
     [toastOpacity],
   );
@@ -233,7 +225,7 @@ export default function CardDetailScreen() {
           />
         </View>
 
-        <Animated.View style={[styles.toast, toastStyle]} pointerEvents="none">
+        <Animated.View style={[styles.toast, { opacity: toastOpacity }]} pointerEvents="none">
           <Text style={styles.toastText}>{copiedField}</Text>
         </Animated.View>
       </SafeAreaView>

@@ -8,6 +8,7 @@
 
 import React, { useCallback, useState } from 'react';
 import {
+  Animated,
   View,
   Text,
   TouchableOpacity,
@@ -15,12 +16,6 @@ import {
   Vibration,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
 
 import { theme } from '../theme';
 
@@ -49,22 +44,18 @@ export const PinInput: React.FC<PinInputProps> = ({
   errorMessage,
 }) => {
   const [pin, setPin] = useState('');
-  const shakeX = useSharedValue(0);
+  const shakeX = React.useRef(new Animated.Value(0)).current;
 
   const shake = useCallback(() => {
-    shakeX.value = withSequence(
-      withTiming(-10, { duration: 50 }),
-      withTiming(10, { duration: 50 }),
-      withTiming(-10, { duration: 50 }),
-      withTiming(10, { duration: 50 }),
-      withTiming(0, { duration: 50 }),
-    );
+    Animated.sequence([
+      Animated.timing(shakeX, { toValue: -10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeX, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeX, { toValue: -10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeX, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeX, { toValue: 0, duration: 50, useNativeDriver: true }),
+    ]).start();
     Vibration.vibrate(200);
   }, [shakeX]);
-
-  const shakeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: shakeX.value }],
-  }));
 
   // Trigger shake when errorMessage changes to a non-empty value
   React.useEffect(() => {
@@ -118,7 +109,7 @@ export const PinInput: React.FC<PinInputProps> = ({
       <Text style={styles.label}>{label}</Text>
 
       {/* Dot indicators */}
-      <Animated.View style={[styles.dotsRow, shakeStyle]}>
+      <Animated.View style={[styles.dotsRow, { transform: [{ translateX: shakeX }] }]}>
         {Array.from({ length: maxLength }).map((_, i) => (
           <View
             key={i}

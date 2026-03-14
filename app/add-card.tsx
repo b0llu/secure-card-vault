@@ -11,7 +11,7 @@
  *  - Extra fields (Bank Name, Card Type, Valid From) only shown when populated.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -35,14 +35,16 @@ import TextRecognition from '@react-native-ml-kit/text-recognition';
 import * as ImagePicker from 'expo-image-picker';
 
 import { addCard } from '../src/storage/database';
+import { detectCardThemeColor } from '../src/services/cardAppearanceService';
 import { detectCardBrand, isValidExpiry, formatCardNumber } from '../src/utils/cardUtils';
 import { parseCardFromOCR } from '../src/utils/ocrParser';
 import { AppBackground } from '../src/components/AppBackground';
+import { CardAppearanceEditor } from '../src/components/CardAppearanceEditor';
 import { CardBrandPicker } from '../src/components/CardBrandPicker';
 import { AppModal, ModalConfig } from '../src/components/AppModal';
 import { ThemedButton } from '../src/components/ThemedButton';
 import { theme } from '../src/theme';
-import type { CardBrand } from '../src/types';
+import type { Card, CardBrand, CardThemeColorSource } from '../src/types';
 
 const FIELD_PLACEHOLDER_COLOR = theme.colors.textMuted;
 
@@ -62,6 +64,10 @@ export default function AddCardScreen() {
   const [selectedBrand, setSelectedBrand] = useState<CardBrand>('unknown');
   const [customBrandName, setCustomBrandName] = useState('');
   const [brandManuallySet, setBrandManuallySet] = useState(false);
+  const [themeColor, setThemeColor] = useState<string | undefined>(undefined);
+  const [detectedThemeColor, setDetectedThemeColor] = useState<string | undefined>(undefined);
+  const [themeColorSource, setThemeColorSource] = useState<CardThemeColorSource | undefined>(undefined);
+  const [hasScannedCard, setHasScannedCard] = useState(false);
 
   // Core form fields
   const [name, setName] = useState('');
@@ -83,6 +89,50 @@ export default function AddCardScreen() {
   const isAmex = detectedBrand === 'amex';
   const cvvMaxLength = isAmex ? 4 : 3;
 
+  const previewCard = useMemo<Card>(() => {
+    const previewBrand = selectedBrand;
+    const previewNumber =
+      cardNumber || (previewBrand === 'amex' ? '378282246310005' : '4242424242424242');
+    const previewExpiryMonth = expiryMonth || '12';
+    const previewExpiryYear = expiryYear || '30';
+    const previewCvv = cvv || (previewBrand === 'amex' ? '1234' : '123');
+
+    return {
+      id: 'preview',
+      name: name || 'CARD HOLDER',
+      cardNumber: previewNumber,
+      expiryMonth: previewExpiryMonth,
+      expiryYear: previewExpiryYear,
+      cvv: previewCvv,
+      nickname,
+      brand: previewBrand,
+      customBrandName: selectedBrand === 'custom' ? customBrandName.trim() || 'Custom' : undefined,
+      bankName: bankName.trim() || undefined,
+      validFromMonth: validFromMonth || undefined,
+      validFromYear: validFromYear || undefined,
+      cardType: cardType.trim() || undefined,
+      themeColor,
+      detectedThemeColor,
+      themeColorSource,
+    };
+  }, [
+    bankName,
+    cardNumber,
+    cardType,
+    customBrandName,
+    cvv,
+    detectedThemeColor,
+    expiryMonth,
+    expiryYear,
+    name,
+    nickname,
+    selectedBrand,
+    themeColor,
+    themeColorSource,
+    validFromMonth,
+    validFromYear,
+  ]);
+
   useEffect(() => {
     if (!brandManuallySet) {
       setSelectedBrand(detectedBrand);
@@ -98,11 +148,22 @@ export default function AddCardScreen() {
     setBrandManuallySet(brand === 'custom' || brand !== detectedBrand);
   }, [detectedBrand]);
 
+  const handleAppearanceChange = useCallback((appearance: {
+    themeColor?: string;
+    themeColorSource?: CardThemeColorSource;
+  }) => {
+    setThemeColor(appearance.themeColor);
+    setThemeColorSource(appearance.themeColor ? appearance.themeColorSource : undefined);
+  }, []);
+
   // ── OCR ─────────────────────────────────────────────────────────────────────
 
   const processImage = useCallback(async (fileUri: string) => {
     try {
-      const result = await TextRecognition.recognize(fileUri);
+      const [result, extractedThemeColor] = await Promise.all([
+        TextRecognition.recognize(fileUri),
+        detectCardThemeColor(fileUri),
+      ]);
 
       const parsed = parseCardFromOCR(result);
       const hasDetectedData = Boolean(
@@ -122,8 +183,16 @@ export default function AddCardScreen() {
       if (parsed.cardHolderName) setName(parsed.cardHolderName);
       if (parsed.bankName) setBankName(parsed.bankName);
       if (parsed.cardType) setCardType(parsed.cardType);
+      if (hasDetectedData && extractedThemeColor) {
+        setDetectedThemeColor(extractedThemeColor);
+        if (themeColorSource !== 'manual') {
+          setThemeColor(extractedThemeColor);
+          setThemeColorSource('detected');
+        }
+      }
 
       if (hasDetectedData) {
+        setHasScannedCard(true);
         setCameraOpen(false);
       } else {
         setModal({
@@ -140,7 +209,7 @@ export default function AddCardScreen() {
         buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
       });
     }
-  }, []);
+  }, [themeColorSource]);
 
   const handleCapturePhoto = useCallback(async () => {
     if (!cameraRef.current) return;
@@ -262,6 +331,9 @@ export default function AddCardScreen() {
         validFromMonth: validFromMonth || undefined,
         validFromYear: validFromYear || undefined,
         cardType: cardType.trim() || undefined,
+        themeColor,
+        detectedThemeColor,
+        themeColorSource: themeColor ? themeColorSource : undefined,
       });
       router.back();
     } catch (err: any) {
@@ -473,6 +545,16 @@ export default function AddCardScreen() {
                   placeholder="Debit, Credit, Prepaid…"
                   autoCapitalize="words"
                 />
+
+                {hasScannedCard ? (
+                  <CardAppearanceEditor
+                    previewCard={previewCard}
+                    themeColor={themeColor}
+                    detectedThemeColor={detectedThemeColor}
+                    themeColorSource={themeColorSource}
+                    onChange={handleAppearanceChange}
+                  />
+                ) : null}
               </ScrollView>
 
               <View style={styles.saveFooter}>

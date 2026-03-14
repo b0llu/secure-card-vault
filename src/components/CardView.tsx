@@ -8,20 +8,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, {
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
 import { Card } from '../types';
 import {
   getBrandDisplayName,
   maskCardNumber,
   formatExpiry,
-  getBrandGradient,
-  getBrandAccent,
 } from '../utils/cardUtils';
-import { shadows, theme } from '../theme';
+import { getResolvedCardAppearance } from '../utils/cardAppearance';
+import { shadows } from '../theme';
 
 const CARD_WIDTH = Math.min(Dimensions.get('window').width - 40, 390);
 const CARD_HEIGHT = CARD_WIDTH * 0.6;
@@ -35,41 +29,43 @@ export const CardView: React.FC<CardViewProps> = ({
   card,
   showCVV = false,
 }) => {
-  const gradient = getBrandGradient(card.brand);
-  const accent = getBrandAccent(card.brand);
+  const appearance = getResolvedCardAppearance(card);
   const brandLabel = getBrandDisplayName(card.brand, card.customBrandName);
-
-  const cvvStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(showCVV ? 1 : 0, {
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-    }),
-  }));
 
   return (
     <LinearGradient
-      colors={gradient}
+      colors={appearance.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1.2 }}
       style={[styles.card, { width: CARD_WIDTH, height: CARD_HEIGHT }]}
     >
-      <View style={styles.overlayOrb} />
+      <View style={[styles.overlayOrb, { backgroundColor: appearance.orbColor }]} />
 
       {/* Header row */}
       <View style={styles.header}>
         {card.nickname ? (
-          <View style={styles.nicknameBadge}>
-            <Text style={[styles.nickname, { color: accent }]}>{card.nickname}</Text>
+          <View
+            style={[
+              styles.nicknameBadge,
+              {
+                backgroundColor: appearance.badgeBackground,
+                borderColor: appearance.badgeBorder,
+              },
+            ]}
+          >
+            <Text style={[styles.nickname, { color: appearance.accent }]}>
+              {card.nickname}
+            </Text>
           </View>
         ) : <View />}
-        <Text style={[styles.brandLabel, { color: accent }]}>
+        <Text style={[styles.brandLabel, { color: appearance.accent }]}>
           {brandLabel}
         </Text>
       </View>
 
       <View style={styles.metaRow}>
         {card.bankName ? (
-          <Text style={styles.bankName} numberOfLines={1}>
+          <Text style={[styles.bankName, { color: appearance.mutedText }]} numberOfLines={1}>
             {card.bankName}
           </Text>
         ) : null}
@@ -77,37 +73,39 @@ export const CardView: React.FC<CardViewProps> = ({
 
       {/* EMV Chip */}
       <View style={styles.chipRow}>
-        <View style={styles.chip}>
-          <View style={styles.chipLine} />
-          <View style={styles.chipLine} />
-          <View style={styles.chipLine} />
+        <View style={[styles.chip, { backgroundColor: appearance.chipBackground }]}>
+          <View style={[styles.chipLine, { backgroundColor: appearance.chipLine }]} />
+          <View style={[styles.chipLine, { backgroundColor: appearance.chipLine }]} />
+          <View style={[styles.chipLine, { backgroundColor: appearance.chipLine }]} />
         </View>
       </View>
 
       {/* Card number */}
-      <Text style={styles.cardNumber}>{maskCardNumber(card.cardNumber)}</Text>
+      <Text style={[styles.cardNumber, { color: appearance.text }]}>
+        {maskCardNumber(card.cardNumber)}
+      </Text>
 
       {/* Footer row */}
       <View style={styles.footer}>
         <View style={styles.footerCol}>
-          <Text style={styles.footerLabel}>CARD HOLDER</Text>
-          <Text style={styles.footerValue} numberOfLines={1}>
+          <Text style={[styles.footerLabel, { color: appearance.labelText }]}>CARD HOLDER</Text>
+          <Text style={[styles.footerValue, { color: appearance.text }]} numberOfLines={1}>
             {card.name || '—'}
           </Text>
         </View>
 
         <View style={styles.footerCol}>
-          <Text style={styles.footerLabel}>EXPIRES</Text>
-          <Text style={styles.footerValue}>
+          <Text style={[styles.footerLabel, { color: appearance.labelText }]}>EXPIRES</Text>
+          <Text style={[styles.footerValue, { color: appearance.text }]}>
             {formatExpiry(card.expiryMonth, card.expiryYear)}
           </Text>
         </View>
 
         {showCVV && (
-          <Animated.View style={[styles.footerCol, cvvStyle]}>
-            <Text style={styles.footerLabel}>CVV</Text>
-            <Text style={styles.footerValue}>{card.cvv}</Text>
-          </Animated.View>
+          <View style={styles.footerCol}>
+            <Text style={[styles.footerLabel, { color: appearance.labelText }]}>CVV</Text>
+            <Text style={[styles.footerValue, { color: appearance.text }]}>{card.cvv}</Text>
+          </View>
         )}
       </View>
     </LinearGradient>
@@ -129,7 +127,6 @@ const styles = StyleSheet.create({
     borderRadius: 90,
     top: -50,
     right: -30,
-    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   header: {
     flexDirection: 'row',
@@ -141,9 +138,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
     maxWidth: '72%',
   },
   nickname: {
@@ -161,7 +156,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   bankName: {
-    color: 'rgba(255,255,255,0.65)',
     fontSize: 12,
     fontWeight: '500',
     letterSpacing: 0.2,
@@ -172,7 +166,6 @@ const styles = StyleSheet.create({
   chip: {
     width: 42,
     height: 30,
-    backgroundColor: '#C8C8C8',
     borderRadius: 8,
     justifyContent: 'space-evenly',
     paddingVertical: 4,
@@ -181,11 +174,9 @@ const styles = StyleSheet.create({
   },
   chipLine: {
     height: 1.5,
-    backgroundColor: 'rgba(0,0,0,0.25)',
     marginHorizontal: 2,
   },
   cardNumber: {
-    color: theme.colors.white,
     fontSize: 20,
     fontWeight: '500',
     letterSpacing: 3.1,
@@ -202,14 +193,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   footerLabel: {
-    color: 'rgba(255,255,255,0.56)',
     fontSize: 8,
     fontWeight: '700',
     letterSpacing: 1.2,
     marginBottom: 4,
   },
   footerValue: {
-    color: theme.colors.white,
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 0.4,
