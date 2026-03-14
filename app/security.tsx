@@ -9,43 +9,48 @@ import { theme } from '../src/theme';
 const SECURITY_POINTS = [
   {
     icon: '🔐',
-    title: 'AES-256 Encryption',
-    body: 'Every card is encrypted before it is written to storage. AES-256 is the same standard used by banks and governments worldwide — considered unbreakable with current technology.',
+    title: 'Your cards are encrypted',
+    body: 'Every card is scrambled using the same encryption standard trusted by banks and governments before it is saved to your phone. Anyone who somehow got to your data would see nothing but meaningless gibberish.',
   },
   {
     icon: '🔑',
-    title: 'Hardware-Backed Key Storage',
-    body: 'The encryption key is protected by Android Keystore or the iOS Secure Enclave when the device supports it.',
+    title: 'The key is locked to your device',
+    body: 'The key that unlocks your cards is stored in a protected area of your phone that other apps cannot reach. It is tied to this device only — it cannot be copied off or used anywhere else.',
   },
   {
     icon: '📴',
-    title: 'Fully Offline',
-    body: 'There are no network requests, analytics calls, or background sync jobs. Your data never leaves the device.',
+    title: 'No internet, ever',
+    body: 'This app never connects to the internet. No syncing, no analytics, no ads, nothing. Your cards never travel over a network, so there is nothing to intercept and no server that could be hacked.',
   },
   {
     icon: '🙈',
-    title: 'Zero Knowledge',
-    body: 'There is no backend and no recovery service. Only you can access the data stored in the vault.',
+    title: 'Only you can access your vault',
+    body: 'There is no account and no recovery service — not even we can get into your vault. This also means there is no "Forgot PIN" option. Keep your PIN and backup password safe, because nobody can recover them for you.',
   },
   {
     icon: '🧬',
-    title: 'Fingerprint & PIN Protection',
-    body: 'The vault can require your PIN and optional fingerprint unlock, and it auto-locks after time in the background.',
+    title: 'PIN & biometric lock',
+    body: 'Your vault is locked with a PIN you choose, and optionally your fingerprint or Face ID. If you switch apps or put your phone down, the vault locks itself automatically after 30 seconds.',
   },
   {
-    icon: '📋',
-    title: 'Clipboard Auto-Clear',
-    body: 'Copied card values are cleared from the clipboard automatically after a short delay to reduce accidental exposure.',
+    icon: '👁️',
+    title: 'Sensitive details hide themselves',
+    body: 'Card numbers and CVVs are hidden by default. If you reveal one, it disappears again after 5 seconds. If you copy one, it is automatically removed from your clipboard after 20 seconds so nothing lingers.',
   },
   {
-    icon: '🖼',
-    title: 'Screenshot Protection',
-    body: 'Android uses secure window flags to block screenshots and screen recordings when the app is open.',
+    icon: '🖼️',
+    title: 'Screenshots are blocked',
+    body: 'Taking a screenshot or recording your screen while the app is open is blocked at the system level on both iPhone and Android. Your cards will not appear in the recent apps screen either.',
+  },
+  {
+    icon: '📷',
+    title: 'Card scanning stays on your phone',
+    body: 'When you scan a card with your camera, the reading happens entirely on your device. No photo or card detail is sent anywhere — not to us, not to any third party.',
   },
   {
     icon: '💾',
-    title: 'Encrypted Backup Files',
-    body: 'Exports are protected with a password-derived key so the shared backup file stays encrypted outside the app too.',
+    title: 'Backups are encrypted too',
+    body: 'When you export a backup, it is locked with a password you set. The file is fully encrypted before it leaves the app, so even if someone gets hold of the file, they cannot open it without your password.',
   },
 ];
 
@@ -61,10 +66,10 @@ export default function SecurityScreen() {
             <View style={styles.heroBadge}>
               <Feather name="shield" size={26} color={theme.colors.primary} />
             </View>
-            <Text style={styles.eyebrow}>Security overview</Text>
+            <Text style={styles.eyebrow}>How we protect you</Text>
             <Text style={styles.title}>Your cards, locked tight.</Text>
             <Text style={styles.subtitle}>
-              Bank-grade encryption, no internet connection, no servers — just your cards on your device and nothing else.
+              No internet. No servers. No accounts. Just your cards, on your phone, protected by the same encryption used by banks.
             </Text>
           </View>
 
