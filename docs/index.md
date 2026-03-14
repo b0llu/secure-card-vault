@@ -183,8 +183,6 @@ If you have any questions, concerns, or feedback regarding this Privacy Policy o
 **Email:** [samantdhruv@gmail.com]
 **GitHub Issues:** [https://github.com/b0llu/secure-card-vault/issues]
 
-> Replace the placeholders above with your actual contact details before publishing.
-
 ---
 
 ## Summary
