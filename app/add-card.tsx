@@ -2,18 +2,16 @@
  * add-card.tsx
  *
  * Scan flow:
- *  - Camera stays open after each scan so you can scan Front and Back
- *    in a single session. Tap "Done" when finished.
- *  - A ✓ appears on the pill toggle once a side has been scanned.
- *  - Front: card number, expiry, valid-from, name, bank, card type.
- *  - Back: CVV.
+ *  - Front-only scan.
+ *  - OCR extracts card number, expiry, valid-from, name, bank, and card type.
+ *  - CVV is never scanned and must be entered manually.
  *
  * Progressive disclosure:
  *  - Core fields always visible: Name, Card Number, Expiry, CVV, Nickname.
  *  - Extra fields (Bank Name, Card Type, Valid From) only shown when populated.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -24,7 +22,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Animated,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -39,13 +36,11 @@ import * as ImagePicker from 'expo-image-picker';
 
 import { addCard } from '../src/storage/database';
 import { detectCardBrand, isValidExpiry, formatCardNumber } from '../src/utils/cardUtils';
-import { parseCardFromOCR, parseCVVFromOCR } from '../src/utils/ocrParser';
+import { parseCardFromOCR } from '../src/utils/ocrParser';
 import { AppBackground } from '../src/components/AppBackground';
 import { AppModal, ModalConfig } from '../src/components/AppModal';
 import { ThemedButton } from '../src/components/ThemedButton';
 import { theme } from '../src/theme';
-
-type ScanSide = 'front' | 'back';
 
 const FIELD_PLACEHOLDER_COLOR = theme.colors.textMuted;
 
@@ -60,13 +55,7 @@ export default function AddCardScreen() {
   const cameraRef = useRef<Camera>(null);
 
   const [scanning, setScanning] = useState(false);
-  const [transitioning, setTransitioning] = useState(false);
-  const backPillScale = useRef(new Animated.Value(1)).current;
-  const flipHintOpacity = useRef(new Animated.Value(0)).current;
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [scanSide, setScanSide] = useState<ScanSide>('front');
-  const [frontScanned, setFrontScanned] = useState(false);
-  const [backScanned, setBackScanned] = useState(false);
   const [modal, setModal] = useState<ModalConfig | null>(null);
 
   // Core form fields
@@ -75,6 +64,7 @@ export default function AddCardScreen() {
   const [expiryMonth, setExpiryMonth] = useState('');
   const [expiryYear, setExpiryYear] = useState('');
   const [cvv, setCvv] = useState('');
+  const [showCvv, setShowCvv] = useState(false);
   const [nickname, setNickname] = useState('');
 
   const [bankName, setBankName] = useState('');
@@ -90,52 +80,44 @@ export default function AddCardScreen() {
 
   // ── OCR ─────────────────────────────────────────────────────────────────────
 
-  const processImage = useCallback(async (fileUri: string, side: ScanSide) => {
+  const processImage = useCallback(async (fileUri: string) => {
     try {
       const result = await TextRecognition.recognize(fileUri);
+      const recognizedText = result.text;
 
       console.log('──────────────────────────────────────');
-      console.log(`OCR [${side.toUpperCase()}] raw text:`);
-      console.log(result.text);
+      console.log('OCR [FRONT] raw text:');
+      console.log(recognizedText);
       console.log('──────────────────────────────────────');
 
-      if (side === 'front') {
-        const parsed = parseCardFromOCR(result.text);
-        console.log('OCR [FRONT] parsed result:', JSON.stringify(parsed, null, 2));
+      const parsed = parseCardFromOCR(result);
+      console.log('OCR [FRONT] parsed result:', JSON.stringify(parsed, null, 2));
+      const hasDetectedData = Boolean(
+        parsed.cardNumber ||
+        parsed.expiryMonth ||
+        parsed.cardHolderName ||
+        parsed.bankName ||
+        parsed.cardType ||
+        parsed.validFromMonth,
+      );
 
-        if (parsed.cardNumber) setCardNumber(parsed.cardNumber);
-        if (parsed.expiryMonth) setExpiryMonth(parsed.expiryMonth);
-        if (parsed.expiryYear) setExpiryYear(parsed.expiryYear);
-        if (parsed.validFromMonth) setValidFromMonth(parsed.validFromMonth);
-        if (parsed.validFromYear) setValidFromYear(parsed.validFromYear);
-        if (parsed.cardHolderName) setName(parsed.cardHolderName);
-        if (parsed.bankName) setBankName(parsed.bankName);
-        if (parsed.cardType) setCardType(parsed.cardType);
+      if (parsed.cardNumber) setCardNumber(parsed.cardNumber);
+      if (parsed.expiryMonth) setExpiryMonth(parsed.expiryMonth);
+      if (parsed.expiryYear) setExpiryYear(parsed.expiryYear);
+      if (parsed.validFromMonth) setValidFromMonth(parsed.validFromMonth);
+      if (parsed.validFromYear) setValidFromYear(parsed.validFromYear);
+      if (parsed.cardHolderName) setName(parsed.cardHolderName);
+      if (parsed.bankName) setBankName(parsed.bankName);
+      if (parsed.cardType) setCardType(parsed.cardType);
 
-        setFrontScanned(true);
-        setScanSide('back');
-
-        if (!parsed.cardNumber && !parsed.expiryMonth) {
-          setModal({
-            title: 'No Card Data Detected',
-            message: 'Could not extract card details. Try adjusting the angle or lighting.',
-            buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
-          });
-        }
+      if (hasDetectedData) {
+        setCameraOpen(false);
       } else {
-        const detected = parseCVVFromOCR(result.text);
-        console.log('OCR [BACK] CVV detected:', detected ?? 'none');
-
-        if (detected) {
-          setCvv(detected);
-          setBackScanned(true);
-        } else {
-          setModal({
-            title: 'CVV Not Found',
-            message: 'Could not detect the CVV. Enter it manually.',
-            buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
-          });
-        }
+        setModal({
+          title: 'No Card Data Detected',
+          message: 'Could not extract card details. Try adjusting the angle or lighting.',
+          buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+        });
       }
     } catch (err) {
       console.error('OCR error:', err);
@@ -152,7 +134,7 @@ export default function AddCardScreen() {
     setScanning(true);
     try {
       const photo = await cameraRef.current.takePhoto({ flash: 'off' });
-      await processImage(`file://${photo.path}`, scanSide);
+      await processImage(`file://${photo.path}`);
     } catch (err: any) {
       setModal({
         title: 'Scan Error',
@@ -162,7 +144,7 @@ export default function AddCardScreen() {
     } finally {
       setScanning(false);
     }
-  }, [scanSide, processImage]);
+  }, [processImage]);
 
   const handlePickImage = useCallback(async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -173,11 +155,11 @@ export default function AddCardScreen() {
     if (result.canceled || !result.assets[0]) return;
     setScanning(true);
     try {
-      await processImage(result.assets[0].uri, scanSide);
+      await processImage(result.assets[0].uri);
     } finally {
       setScanning(false);
     }
-  }, [scanSide, processImage]);
+  }, [processImage]);
 
   const handleOpenCamera = async () => {
     if (!hasPermission) {
@@ -191,43 +173,12 @@ export default function AddCardScreen() {
         return;
       }
     }
-    setFrontScanned(false);
-    setBackScanned(false);
-    setScanSide('front');
     setCameraOpen(true);
   };
 
   const handleDoneScanning = () => {
     setCameraOpen(false);
   };
-
-  // Animate Back pill when auto-switching sides
-  useEffect(() => {
-    if (scanSide === 'back') {
-      Animated.sequence([
-        Animated.spring(backPillScale, { toValue: 1.22, useNativeDriver: true, speed: 28, bounciness: 14 }),
-        Animated.spring(backPillScale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 6 }),
-      ]).start();
-
-      Animated.sequence([
-        Animated.timing(flipHintOpacity, { toValue: 1, duration: 220, useNativeDriver: true }),
-        Animated.delay(1400),
-        Animated.timing(flipHintOpacity, { toValue: 0, duration: 340, useNativeDriver: true }),
-      ]).start();
-    }
-  }, [scanSide]);
-
-  // Auto-close camera when both sides are scanned
-  useEffect(() => {
-    if (frontScanned && backScanned) {
-      setTransitioning(true);
-      const t = setTimeout(() => {
-        setCameraOpen(false);
-        setTransitioning(false);
-      }, 900);
-      return () => clearTimeout(t);
-    }
-  }, [frontScanned, backScanned]);
 
   // ── Save ─────────────────────────────────────────────────────────────────────
 
@@ -318,70 +269,36 @@ export default function AddCardScreen() {
                 photo
               />
 
-              {/* Front / Back toggle */}
-              <View style={styles.pillWrapper}>
-                <View style={styles.sidePill}>
-                  <TouchableOpacity
-                    style={[styles.pillBtn, scanSide === 'front' && styles.pillBtnActive]}
-                    onPress={() => setScanSide('front')}
-                  >
-                    <Text style={[styles.pillText, scanSide === 'front' && styles.pillTextActive]}>
-                      {frontScanned ? '✓ ' : ''}Front
-                    </Text>
-                  </TouchableOpacity>
-                  <Animated.View style={{ transform: [{ scale: backPillScale }] }}>
-                    <TouchableOpacity
-                      style={[styles.pillBtn, scanSide === 'back' && styles.pillBtnActive]}
-                      onPress={() => setScanSide('back')}
-                    >
-                      <Text style={[styles.pillText, scanSide === 'back' && styles.pillTextActive]}>
-                        {backScanned ? '✓ ' : ''}Back
-                      </Text>
-                    </TouchableOpacity>
-                  </Animated.View>
-                </View>
-
-                <Animated.Text style={[styles.flipHint, { opacity: flipHintOpacity }]}>
-                  Flip your card
-                </Animated.Text>
-              </View>
-
               {/* Scan frame + hint */}
               <View style={styles.cameraOverlay}>
                 <View style={styles.scanFrame} />
-                <Text style={styles.scanHint}>
-                  {scanSide === 'front' ? 'Align the front of your card' : 'Align the back of your card'}
-                </Text>
+                <Text style={styles.scanHint}>Align the front of your card</Text>
               </View>
 
               {/* Controls: Cancel | Capture | Gallery */}
               <View style={styles.cameraControls}>
                 <TouchableOpacity onPress={handleDoneScanning} style={styles.cancelBtn}>
-                  <Text style={styles.cancelBtnText}>
-                    {frontScanned || backScanned ? 'Done' : 'Cancel'}
-                  </Text>
+                  <Text style={styles.cancelBtnText}>Cancel</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.captureBtn}
                   onPress={handleCapturePhoto}
-                  disabled={scanning || transitioning}
+                  disabled={scanning}
                 >
                   <View style={styles.captureBtnInner} />
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={handlePickImage} style={styles.galleryBtn} disabled={scanning || transitioning}>
+                <TouchableOpacity onPress={handlePickImage} style={styles.galleryBtn} disabled={scanning}>
                   <Text style={styles.galleryBtnText}>Gallery</Text>
                 </TouchableOpacity>
               </View>
 
-              {/* Full-screen overlay while OCR processes or transitioning */}
-              {(scanning || transitioning) && (
+              {/* Full-screen overlay while OCR processes */}
+              {scanning && (
                 <View style={styles.scanningOverlay}>
                   <ActivityIndicator size="large" color={theme.colors.primary} />
-                  <Text style={styles.scanningText}>
-                    {transitioning ? 'Preparing card data…' : 'Scanning…'}
-                  </Text>
+                  <Text style={styles.scanningText}>Scanning card…</Text>
                 </View>
               )}
             </>
@@ -471,7 +388,21 @@ export default function AddCardScreen() {
                   placeholder={isAmex ? '••••' : '•••'}
                   keyboardType="number-pad"
                   maxLength={cvvMaxLength}
-                  secureTextEntry
+                  secureTextEntry={!showCvv}
+                  trailingAccessory={
+                    <TouchableOpacity
+                      style={styles.fieldAccessory}
+                      onPress={() => setShowCvv((current) => !current)}
+                      activeOpacity={0.75}
+                    >
+                      <Feather
+                        name={showCvv ? 'eye-off' : 'eye'}
+                        size={16}
+                        color={theme.colors.textMuted}
+                      />
+                      <Text style={styles.fieldAccessoryText}>{showCvv ? 'Hide' : 'Show'}</Text>
+                    </TouchableOpacity>
+                  }
                 />
 
                 <Field
@@ -554,6 +485,7 @@ interface FieldProps {
   maxLength?: number;
   secureTextEntry?: boolean;
   autoCapitalize?: 'none' | 'words' | 'sentences' | 'characters';
+  trailingAccessory?: React.ReactNode;
 }
 
 function Field({
@@ -565,23 +497,27 @@ function Field({
   maxLength,
   secureTextEntry,
   autoCapitalize,
+  trailingAccessory,
 }: FieldProps) {
   return (
     <View style={styles.fieldContainer}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <TextInput
-        style={styles.fieldInput}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={FIELD_PLACEHOLDER_COLOR}
-        keyboardType={keyboardType}
-        maxLength={maxLength}
-        secureTextEntry={secureTextEntry}
-        autoCapitalize={autoCapitalize}
-        autoCorrect={false}
-        spellCheck={false}
-      />
+      <View style={styles.fieldInputWrap}>
+        <TextInput
+          style={[styles.fieldInput, trailingAccessory ? styles.fieldInputWithAccessory : null]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={FIELD_PLACEHOLDER_COLOR}
+          keyboardType={keyboardType}
+          maxLength={maxLength}
+          secureTextEntry={secureTextEntry}
+          autoCapitalize={autoCapitalize}
+          autoCorrect={false}
+          spellCheck={false}
+        />
+        {trailingAccessory}
+      </View>
     </View>
   );
 }
@@ -650,6 +586,14 @@ const styles = StyleSheet.create({
   fieldContainer: {
     gap: 6,
   },
+  fieldInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
   fieldLabel: {
     color: theme.colors.textMuted,
     fontSize: 12,
@@ -658,62 +602,31 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   fieldInput: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
+    flex: 1,
     paddingHorizontal: 14,
     paddingVertical: 14,
     color: theme.colors.text,
     fontSize: 16,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+  },
+  fieldInputWithAccessory: {
+    paddingRight: 8,
+  },
+  fieldAccessory: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingRight: 14,
+    paddingLeft: 6,
+  },
+  fieldAccessoryText: {
+    color: theme.colors.textMuted,
+    fontSize: 13,
+    fontWeight: '600',
   },
   // ── Camera ──
   cameraContainer: {
     flex: 1,
     backgroundColor: '#000',
-  },
-  pillWrapper: {
-    position: 'absolute',
-    top: 60,
-    alignSelf: 'center',
-    alignItems: 'center',
-    gap: 10,
-    zIndex: 10,
-  },
-  sidePill: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(8,8,8,0.80)',
-    borderRadius: 24,
-    padding: 4,
-    gap: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  flipHint: {
-    color: theme.colors.primary,
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 0.3,
-    backgroundColor: 'rgba(8,8,8,0.72)',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  pillBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 9,
-    borderRadius: 20,
-  },
-  pillBtnActive: {
-    backgroundColor: theme.colors.primary,
-  },
-  pillText: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  pillTextActive: {
-    color: theme.colors.primaryInk,
   },
   cameraOverlay: {
     ...StyleSheet.absoluteFillObject,

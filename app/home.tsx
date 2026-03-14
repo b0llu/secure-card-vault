@@ -62,6 +62,7 @@ function groupCards(
   cards: Card[],
   grouping: GroupingKey,
 ): { title: string; data: Card[] }[] {
+  if (cards.length === 0) return [];
   if (grouping === 'none') return [{ title: '', data: cards }];
 
   const groups = new Map<string, Card[]>();

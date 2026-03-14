@@ -38,6 +38,7 @@ export default function EditCardScreen() {
   const [expiryMonth, setExpiryMonth] = useState('');
   const [expiryYear, setExpiryYear] = useState('');
   const [cvv, setCvv] = useState('');
+  const [showCvv, setShowCvv] = useState(false);
   const [nickname, setNickname] = useState('');
   const [bankName, setBankName] = useState('');
   const [cardType, setCardType] = useState('');
@@ -173,7 +174,21 @@ export default function EditCardScreen() {
                 placeholder={isAmex ? '••••' : '•••'}
                 keyboardType="number-pad"
                 maxLength={cvvMaxLength}
-                secureTextEntry
+                secureTextEntry={!showCvv}
+                trailingAccessory={
+                  <TouchableOpacity
+                    style={styles.fieldAccessory}
+                    onPress={() => setShowCvv((current) => !current)}
+                    activeOpacity={0.75}
+                  >
+                    <Feather
+                      name={showCvv ? 'eye-off' : 'eye'}
+                      size={16}
+                      color={theme.colors.textMuted}
+                    />
+                    <Text style={styles.fieldAccessoryText}>{showCvv ? 'Hide' : 'Show'}</Text>
+                  </TouchableOpacity>
+                }
               />
 
               <Field label="Nickname (optional)" value={nickname} onChangeText={setNickname} placeholder="Travel Visa, Work Card…" autoCapitalize="words" />
@@ -213,7 +228,7 @@ export default function EditCardScreen() {
 
 function Field({
   label, value, onChangeText, placeholder, keyboardType = 'default',
-  maxLength, secureTextEntry, autoCapitalize,
+  maxLength, secureTextEntry, autoCapitalize, trailingAccessory,
 }: {
   label: string;
   value: string;
@@ -223,23 +238,27 @@ function Field({
   maxLength?: number;
   secureTextEntry?: boolean;
   autoCapitalize?: 'none' | 'words' | 'sentences' | 'characters';
+  trailingAccessory?: React.ReactNode;
 }) {
   return (
     <View style={styles.fieldContainer}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <TextInput
-        style={styles.fieldInput}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={PLACEHOLDER_COLOR}
-        keyboardType={keyboardType}
-        maxLength={maxLength}
-        secureTextEntry={secureTextEntry}
-        autoCapitalize={autoCapitalize}
-        autoCorrect={false}
-        spellCheck={false}
-      />
+      <View style={styles.fieldInputWrap}>
+        <TextInput
+          style={[styles.fieldInput, trailingAccessory ? styles.fieldInputWithAccessory : null]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={PLACEHOLDER_COLOR}
+          keyboardType={keyboardType}
+          maxLength={maxLength}
+          secureTextEntry={secureTextEntry}
+          autoCapitalize={autoCapitalize}
+          autoCorrect={false}
+          spellCheck={false}
+        />
+        {trailingAccessory}
+      </View>
     </View>
   );
 }
@@ -268,6 +287,14 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 12 },
   rowField: { flex: 1 },
   fieldContainer: { gap: 6 },
+  fieldInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
   fieldLabel: {
     color: theme.colors.textMuted,
     fontSize: 12,
@@ -276,14 +303,26 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   fieldInput: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
+    flex: 1,
     paddingHorizontal: 14,
     paddingVertical: 14,
     color: theme.colors.text,
     fontSize: 16,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+  },
+  fieldInputWithAccessory: {
+    paddingRight: 8,
+  },
+  fieldAccessory: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingRight: 14,
+    paddingLeft: 6,
+  },
+  fieldAccessoryText: {
+    color: theme.colors.textMuted,
+    fontSize: 13,
+    fontWeight: '600',
   },
   footer: {
     paddingHorizontal: 20,
