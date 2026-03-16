@@ -35,7 +35,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#0E0E0E',
     },
     package: 'com.securecardvault.free',
-    versionCode: 3,
+    versionCode: 4,
     permissions: [
       'android.permission.CAMERA',
       'android.permission.USE_BIOMETRIC',
