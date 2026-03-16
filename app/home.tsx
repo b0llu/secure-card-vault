@@ -101,12 +101,6 @@ export default function HomeScreen() {
   const [modal, setModal] = useState<ModalConfig | null>(null);
   const [activeGrouping, setActiveGrouping] = useState<GroupingKey>('none');
 
-  const usageLabel = useMemo(() => {
-    if (count === 0) return 'No cards stored';
-    if (count === 1) return '1 card stored';
-    return `${count} cards stored`;
-  }, [count]);
-
   const loadCards = useCallback(async () => {
     setLoading(true);
     const [fetched, total] = await Promise.all([getCards(), getCardCount()]);
@@ -331,6 +325,11 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.footer}>
+          <LinearGradient
+            colors={['rgba(8,8,8,0)', 'rgba(8,8,8,0.96)']}
+            style={styles.footerGradient}
+            pointerEvents="none"
+          />
           <ThemedButton
             title="Add Card"
             onPress={handleAddCard}
@@ -458,7 +457,7 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: 20,
     paddingTop: 0,
-    paddingBottom: 100,
+    paddingBottom: 75,
   },
   listEmptyState: {
     flexGrow: 1,
@@ -562,9 +561,17 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    left: 20,
-    right: 20,
-    bottom: 18,
-    gap: 10,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+  },
+  footerGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: -36,
+    bottom: 0,
   },
 });
