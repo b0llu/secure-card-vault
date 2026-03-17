@@ -1,7 +1,7 @@
 # Privacy Policy — Card Vault
 
 **Effective Date:** March 14, 2026
-**Last Updated:** March 14, 2026
+**Last Updated:** March 17, 2026
 **App Name:** Card Vault
 **Platform:** Android (Google Play), iOS (App Store)
 **Developer:** Dhruv
@@ -10,7 +10,7 @@
 
 ## Overview
 
-Card Vault is a completely offline, on-device application for securely storing payment card details. This Privacy Policy explains what data the app handles, how it is stored, and your rights as a user.
+Card Vault is a completely offline, on-device application for securely storing and organising private information. This Privacy Policy explains what data the app handles, how it is stored, and your rights as a user.
 
 **The short version:** Card Vault collects no personal data, transmits nothing to any server, and has no analytics, advertising, or account system of any kind. Everything stays on your device.
 
@@ -20,13 +20,13 @@ Card Vault is a completely offline, on-device application for securely storing p
 
 Card Vault does **not** collect, transmit, store remotely, or share any of the following:
 
-- Payment card numbers, CVVs, expiry dates, or cardholder names
+- Any details you store within the app
 - Device identifiers (IMEI, advertising ID, etc.)
 - Location data
 - Contact information
 - Usage analytics or crash reports sent to any external server
 - IP addresses or network metadata
-- Biometric data (fingerprints, Face ID templates)
+- Biometric data (fingerprint templates, etc.)
 - Any personally identifiable information (PII)
 
 There are no user accounts, no login system, and no registration process. You are never asked to provide your name, email address, or any contact detail.
@@ -39,7 +39,7 @@ All data that Card Vault handles is stored exclusively on your device and never 
 
 | Data | Purpose | Storage |
 |------|---------|---------|
-| Card details (number, name, expiry, CVV, bank, nickname) | Core app functionality | Encrypted on-device database |
+| Saved entries (labels, identifiers, expiry, security codes, nicknames) | Core app functionality | Encrypted on-device database |
 | App PIN (hashed) | Vault authentication | Encrypted local storage |
 | Biometrics preference toggle | Optional unlock method | Local preference store |
 | Grouping / display preferences | UI personalisation | Local preference store |
@@ -47,27 +47,27 @@ All data that Card Vault handles is stored exclusively on your device and never 
 
 ### Encryption
 
-Every card record is encrypted using **AES-256** before being written to storage. AES-256 is the same encryption standard used by banks, governments, and security agencies worldwide. The encryption key is derived from your PIN and stored in your device's **Secure Enclave** (iOS) or **Android Keystore** (Android) — a hardware-backed, sandboxed area that no other app can access and that cannot be extracted from the device.
+Every entry is encrypted using **AES-256** before being written to storage. The encryption key is derived from your PIN and stored in your device's **Secure Enclave** (iOS) or **Android Keystore** (Android) — a hardware-backed, sandboxed area that no other app can access and that cannot be extracted from the device.
 
 ---
 
 ## 3. Camera Permission
 
-Card Vault may request access to your device camera to allow you to scan a card instead of typing its details manually.
+Card Vault may request access to your device camera to allow you to scan and capture details instead of typing them manually.
 
 - The camera feed is processed entirely **on-device** using on-device OCR.
 - **No image, frame, or video is transmitted anywhere** — not to us, not to any third party.
 - No photo is saved to your photo library unless you explicitly save it yourself.
-- Camera access is entirely optional. You may decline the permission and add cards manually.
+- Camera access is entirely optional. You may decline the permission and add entries manually.
 
 ---
 
 ## 4. Biometric Permission
 
-Card Vault may request access to fingerprint or Face ID authentication to provide a faster unlock option.
+Card Vault may request access to fingerprint authentication to provide a faster unlock option.
 
 - Biometric data is handled entirely by the operating system (iOS LocalAuthentication / Android BiometricPrompt).
-- Card Vault **never has access to raw biometric data** (fingerprint images, facial geometry, etc.). It only receives a yes/no authentication result from the OS.
+- Card Vault **never has access to raw biometric data** (fingerprint images, etc.). It only receives a yes/no authentication result from the OS.
 - Enabling biometrics is optional. A PIN-only unlock is always available.
 
 ---
@@ -93,7 +93,7 @@ Card Vault includes an optional Export feature that lets you create a backup of 
 
 ## 7. Clipboard
 
-When you copy a card number or CVV to your clipboard, Card Vault automatically clears the clipboard **after 20 seconds**. This ensures sensitive data does not persist in your clipboard where other apps could potentially read it.
+When you copy any stored detail to your clipboard, Card Vault automatically clears the clipboard **after 20 seconds**. This ensures sensitive data does not persist in your clipboard where other apps could potentially read it.
 
 ---
 
@@ -104,13 +104,13 @@ Card Vault blocks screenshots and screen recordings at the system level on both 
 - Screenshots taken while the app is open will be blank or blocked.
 - The app preview in the recent apps / app switcher screen is blurred or hidden.
 
-This is a security feature designed to prevent accidental or malicious capture of your card data.
+This is a security feature designed to prevent accidental or malicious capture of your stored data.
 
 ---
 
 ## 9. Auto-Lock
 
-The vault automatically locks itself after **30 seconds** of the app being in the background or inactive. Once locked, all card data is inaccessible without your PIN or biometrics. This protects your data if you leave your phone unattended.
+The vault automatically locks itself after **30 seconds** of the app being in the background or inactive. Once locked, all stored data is inaccessible without your PIN or biometrics. This protects your data if you leave your phone unattended.
 
 ---
 
@@ -130,7 +130,7 @@ The only third-party code present in the app is open-source UI and system librar
 
 ## 11. Children's Privacy
 
-Card Vault does not collect any personal information from anyone, including children. There is no account system, no data entry beyond card details stored locally, and no communication with any server. The app is not directed at children under 13, but because it collects no data whatsoever, it poses no risk to any age group.
+Card Vault does not collect any personal information from anyone, including children. There is no account system, no data entry beyond entries stored locally, and no communication with any server. The app is not directed at children under 13, but because it collects no data whatsoever, it poses no risk to any age group.
 
 ---
 
@@ -146,7 +146,7 @@ Card Vault does not collect any personal information from anyone, including chil
 | Auto-lock | 30 seconds of inactivity |
 | Screenshot protection | Blocked at OS level |
 | Clipboard protection | Cleared after 20 seconds |
-| Card detail visibility | Hidden by default, auto-hides after 5 seconds |
+| Stored detail visibility | Hidden by default, auto-hides after 5 seconds |
 | Backup protection | AES-256 encrypted, password-protected |
 
 ---
@@ -158,7 +158,7 @@ Because Card Vault stores all data exclusively on your device and we have no acc
 - **Access:** You can view all stored data at any time within the app.
 - **Deletion:** Deleting the app from your device permanently and irreversibly removes all stored data. There is no server-side copy to delete.
 - **Portability:** You can export your vault at any time using the Export feature in Settings.
-- **Correction:** You can edit or delete individual card entries directly in the app.
+- **Correction:** You can edit or delete individual entries directly in the app.
 
 We have no ability to access, retrieve, modify, or delete your data on your behalf because we have no access to your device or its contents.
 
@@ -187,8 +187,8 @@ If you have any questions, concerns, or feedback regarding this Privacy Policy o
 
 ## Summary
 
-Card Vault is designed from the ground up to be a zero-knowledge, offline-only application. We do not want your data, we cannot access your data, and your data never leaves your device. Your cards are yours — locked, encrypted, and private.
+Card Vault is designed from the ground up to be a zero-knowledge, offline-only application. We do not want your data, we cannot access your data, and your data never leaves your device. Everything you store is yours — locked, encrypted, and private.
 
 ---
 
-*This privacy policy was last reviewed on March 14, 2026.*
+*This privacy policy was last reviewed on March 17, 2026.*
