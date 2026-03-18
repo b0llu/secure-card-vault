@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: 'transparent' },
   flex: { flex: 1, backgroundColor: 'transparent' },
   form: {
-    padding: 20,
+    padding: 10,
     paddingBottom: 20,
     gap: 16,
   },

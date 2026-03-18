@@ -1,6 +1,7 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   ScrollView,
   SectionList,
   StyleSheet,
@@ -19,6 +20,7 @@ import { ThemedButton } from '../src/components/ThemedButton';
 import { Card } from '../src/types';
 import { getCardCount, getCards } from '../src/storage/database';
 import {
+  formatCardNumber,
   getBrandDisplayName,
   maskCardNumber,
 } from '../src/utils/cardUtils';
@@ -149,67 +151,9 @@ export default function HomeScreen() {
     router.push('/add-card');
   };
 
-  const renderCard = ({ item }: { item: Card }) => {
-    const appearance = getResolvedCardAppearance(item);
-    const brandLabel = getBrandDisplayName(item.brand, item.customBrandName) || 'STORED CARD';
-
-    return (
-      <TouchableOpacity
-        activeOpacity={0.84}
-        onPress={() => router.push(`/card/${item.id}`)}
-      >
-        <LinearGradient
-          colors={appearance.gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardRow}
-        >
-          <View style={styles.cardRowTop}>
-            <Text style={[styles.cardBrand, { color: appearance.mutedText }]}>
-              {brandLabel}
-            </Text>
-            {item.nickname ? (
-              <View
-                style={[
-                  styles.cardNicknamePill,
-                  {
-                    backgroundColor: appearance.badgeBackground,
-                    borderColor: appearance.badgeBorder,
-                  },
-                ]}
-              >
-                <Text
-                  style={[styles.cardNicknamePillText, { color: appearance.text }]}
-                >
-                  {item.nickname}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-
-          <Text style={[styles.cardNumber, { color: appearance.text }]}>
-            {maskCardNumber(item.cardNumber)}
-          </Text>
-
-          <View style={styles.cardFooter}>
-            <View style={styles.cardFooterCopy}>
-              <Text style={[styles.cardFooterName, { color: appearance.text }]} numberOfLines={1}>
-                {item.name}
-              </Text>
-              <Text style={[styles.cardFooterMeta, { color: appearance.mutedText }]} numberOfLines={1}>
-                {item.bankName}
-              </Text>
-            </View>
-            <Feather
-              name="chevron-right"
-              size={18}
-              color={appearance.chevronColor}
-            />
-          </View>
-        </LinearGradient>
-      </TouchableOpacity>
-    );
-  };
+  const renderCard = ({ item }: { item: Card }) => (
+    <CardListItem item={item} onNavigate={() => router.push(`/card/${item.id}`)} />
+  );
 
   const renderSectionHeader = ({
     section,
@@ -346,6 +290,161 @@ export default function HomeScreen() {
 
       <AppModal config={modal} onDismiss={() => setModal(null)} />
     </AppBackground>
+  );
+}
+
+const REVEAL_MS = 5_000;
+
+function CardListItem({ item, onNavigate }: { item: Card; onNavigate: () => void }) {
+  const [revealed, setRevealed] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressAnim = useRef(new Animated.Value(1)).current;
+  const animRef = useRef<Animated.CompositeAnimation | null>(null);
+  const appearance = getResolvedCardAppearance(item);
+  const brandLabel = getBrandDisplayName(item.brand, item.customBrandName) || 'STORED CARD';
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      animRef.current?.stop();
+    };
+  }, []);
+
+  const startReveal = () => {
+    progressAnim.setValue(1);
+    animRef.current = Animated.timing(progressAnim, {
+      toValue: 0,
+      duration: REVEAL_MS,
+      useNativeDriver: false,
+    });
+    animRef.current.start();
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      setRevealed(false);
+      progressAnim.setValue(1);
+    }, REVEAL_MS);
+  };
+
+  const handleReveal = () => {
+    if (revealed) {
+      setRevealed(false);
+      animRef.current?.stop();
+      progressAnim.setValue(1);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      return;
+    }
+    setRevealed(true);
+    startReveal();
+  };
+
+  return (
+    <TouchableOpacity activeOpacity={0.84} onPress={onNavigate}>
+      <LinearGradient
+        colors={appearance.gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.cardRow}
+      >
+        {/* Countdown sweep overlay — adapts to card brightness */}
+        {revealed && (
+          <View style={styles.cardSweepTrack} pointerEvents="none">
+            <Animated.View
+              style={[
+                styles.cardSweepFill,
+                {
+                  backgroundColor: appearance.text === '#FFFFFF'
+                    ? 'rgba(255,255,255,0.07)'
+                    : 'rgba(8,16,25,0.10)',
+                  width: progressAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0%', '100%'],
+                  }),
+                },
+              ]}
+            />
+          </View>
+        )}
+
+        {/* Brand + nickname */}
+        <View style={styles.cardRowTop}>
+          <Text style={[styles.cardBrand, { color: appearance.mutedText }]}>
+            {brandLabel}
+          </Text>
+          {item.nickname ? (
+            <View
+              style={[
+                styles.cardNicknamePill,
+                {
+                  backgroundColor: appearance.badgeBackground,
+                  borderColor: appearance.badgeBorder,
+                },
+              ]}
+            >
+              <Text style={[styles.cardNicknamePillText, { color: appearance.text }]}>
+                {item.nickname}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        {/* Card number */}
+        <Text style={[styles.cardNumber, { color: appearance.text }]}>
+          {revealed ? formatCardNumber(item.cardNumber) : maskCardNumber(item.cardNumber)}
+        </Text>
+
+        {/* CVV row */}
+        <View style={styles.cardCvvRow}>
+          <Text style={[styles.cardCvvLabel, { color: appearance.mutedText }]}>CVV</Text>
+          <Text
+            style={[
+              styles.cardCvvValue,
+              { color: revealed ? appearance.text : appearance.mutedText },
+            ]}
+          >
+            {revealed ? item.cvv : item.cvv.length === 4 ? '••••' : '•••'}
+          </Text>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.cardFooter}>
+          <View style={styles.cardFooterCopy}>
+            <Text style={[styles.cardFooterName, { color: appearance.text }]} numberOfLines={1}>
+              {item.name}
+            </Text>
+            {item.bankName ? (
+              <Text style={[styles.cardFooterMeta, { color: appearance.mutedText }]} numberOfLines={1}>
+                {item.bankName}
+              </Text>
+            ) : null}
+          </View>
+
+          <TouchableOpacity
+            onPress={handleReveal}
+            style={[
+              styles.revealPill,
+              {
+                borderColor: revealed ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.18)',
+                backgroundColor: revealed ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)',
+              },
+            ]}
+            activeOpacity={0.75}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Feather
+              name={revealed ? 'eye-off' : 'eye'}
+              size={12}
+              color={revealed ? appearance.text : appearance.mutedText}
+            />
+            <Text style={[styles.revealPillText, { color: revealed ? appearance.text : appearance.mutedText }]}>
+              {revealed ? 'Hide' : 'Reveal'}
+            </Text>
+          </TouchableOpacity>
+
+          <Feather name="chevron-right" size={18} color={appearance.chevronColor} />
+        </View>
+
+      </LinearGradient>
+    </TouchableOpacity>
   );
 }
 
@@ -510,6 +609,46 @@ const styles = StyleSheet.create({
     fontSize: 19,
     fontWeight: '600',
     letterSpacing: 2.8,
+  },
+  cardCvvRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cardCvvLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.0,
+  },
+  cardCvvValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+    letterSpacing: 0.6,
+  },
+  revealPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  revealPillText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  cardSweepTrack: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden',
+    borderRadius: 24,
+  },
+  cardSweepFill: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
   },
   cardFooter: {
     flexDirection: 'row',

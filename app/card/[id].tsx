@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppBackground } from '../../src/components/AppBackground';
@@ -57,20 +57,22 @@ export default function CardDetailScreen() {
     [toastOpacity],
   );
 
-  useEffect(() => {
-    (async () => {
-      if (!id) return;
-      const fetched = await getCardById(id);
-      setCard(fetched);
-      setLoading(false);
-    })();
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        if (!id) return;
+        const fetched = await getCardById(id);
+        setCard(fetched);
+        setLoading(false);
+      })();
 
-    return () => {
-      if (cvvTimer.current) clearTimeout(cvvTimer.current);
-      if (numberTimer.current) clearTimeout(numberTimer.current);
-      if (clipboardTimer.current) clearTimeout(clipboardTimer.current);
-    };
-  }, [id]);
+      return () => {
+        if (cvvTimer.current) clearTimeout(cvvTimer.current);
+        if (numberTimer.current) clearTimeout(numberTimer.current);
+        if (clipboardTimer.current) clearTimeout(clipboardTimer.current);
+      };
+    }, [id]),
+  );
 
   const scheduleClipboardClear = () => {
     if (clipboardTimer.current) clearTimeout(clipboardTimer.current);
