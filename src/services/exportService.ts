@@ -35,10 +35,16 @@ export const VAULT_FILE_EXTENSION = '.securevault';
 const PBKDF2_ITERATIONS = 200_000;
 const APP_BACKUP_DIRECTORY = 'backups';
 const ANDROID_EXPORT_DIRECTORY = 'Card Vault';
-const ANDROID_EXPORT_MIME_TYPE = 'application/json';
+const ANDROID_EXPORT_MIME_TYPE = 'application/octet-stream';
 
 function createExportFilename() {
-  return `vault_backup_${Date.now()}${VAULT_FILE_EXTENSION}`;
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  return `CardVault_Backup_${y}-${m}-${d}_${hh}${mm}${VAULT_FILE_EXTENSION}`;
 }
 
 async function buildExportPayload(password: string): Promise<string> {
@@ -184,7 +190,7 @@ export async function saveVaultCopyToAndroidDirectory(
 
   const safFileUri = await FileSystem.StorageAccessFramework.createFileAsync(
     directoryUri,
-    filename.replace(VAULT_FILE_EXTENSION, ''),
+    filename,
     ANDROID_EXPORT_MIME_TYPE,
   );
 
@@ -196,7 +202,7 @@ export async function saveVaultCopyToAndroidDirectory(
 
   return {
     filePath: safFileUri,
-    filename: `${filename.replace(VAULT_FILE_EXTENSION, '')}.json`,
+    filename,
     locationDescription,
   };
 }

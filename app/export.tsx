@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -125,7 +126,7 @@ export default function ExportScreen() {
             </View>
 
             <View style={styles.formCard}>
-              <FieldLabel label="Export password" />
+              <FieldLabel label="Export password — minimum 10 characters" />
               <View style={styles.passwordRow}>
                 <TextInput
                   style={[styles.input, styles.inputNoBorder]}
@@ -146,6 +147,12 @@ export default function ExportScreen() {
                   </Text>
                 </TouchableOpacity>
               </View>
+
+              {password.length > 0 && password.length < 10 && (
+                <Text style={styles.passwordHint}>
+                  {10 - password.length} more character{10 - password.length === 1 ? '' : 's'} needed
+                </Text>
+              )}
 
               <FieldLabel label="Confirm password" />
               <View style={styles.passwordRow}>
@@ -181,11 +188,9 @@ export default function ExportScreen() {
                   <Text style={styles.successTitle}>Backup saved</Text>
                   <Text style={styles.successFilename} numberOfLines={1}>{savedFilename}</Text>
                   <Text style={styles.successHint}>
-                    {savedLocation
-                      ? `Location: ${savedLocation}`
-                      : Platform.OS === 'ios'
-                        ? 'Find it in Files app > On My iPhone > Card Vault > backups'
-                        : 'Saved to app storage. Use the button below to send it elsewhere.'}
+                    {Platform.OS === 'ios'
+                      ? 'Find it in Files app > On My iPhone > Card Vault > backups'
+                      : 'Use the button below to move it to Downloads or another folder.'}
                   </Text>
                 </View>
               </View>
@@ -221,6 +226,20 @@ export default function ExportScreen() {
       </SafeAreaView>
 
       <AppModal config={modal} onDismiss={() => setModal(null)} />
+
+      {/* Exporting overlay — rendered as last child of AppBackground so it
+          sits above all content without Modal positioning issues */}
+      {exporting && (
+        <View style={[StyleSheet.absoluteFill, styles.exportingOverlay]}>
+          <View style={styles.exportingCard}>
+            <ActivityIndicator color={theme.colors.primary} size="large" />
+            <Text style={styles.exportingTitle}>Encrypting your vault…</Text>
+            <Text style={styles.exportingSubtitle}>
+              This may take a few seconds.{'\n'}Please don't close the app.
+            </Text>
+          </View>
+        </View>
+      )}
     </AppBackground>
   );
 }
@@ -366,6 +385,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
+  passwordHint: {
+    color: theme.colors.warning,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: -4,
+  },
   strengthRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -424,6 +449,34 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
     marginTop: 2,
+  },
+  exportingOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  exportingCard: {
+    width: '100%',
+    backgroundColor: theme.colors.surface,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: theme.colors.borderStrong,
+    padding: 32,
+    alignItems: 'center',
+    gap: 16,
+  },
+  exportingTitle: {
+    color: theme.colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  exportingSubtitle: {
+    color: theme.colors.textMuted,
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: 'center',
   },
   warningCard: {
     flexDirection: 'row',

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -254,6 +255,18 @@ export default function ImportScreen() {
       </SafeAreaView>
 
       <AppModal config={modalConfig} onDismiss={dismissModal} />
+
+      {importing && (
+        <View style={[StyleSheet.absoluteFill, styles.importingOverlay]}>
+          <View style={styles.importingCard}>
+            <ActivityIndicator color={theme.colors.primary} size="large" />
+            <Text style={styles.importingTitle}>Importing your vault…</Text>
+            <Text style={styles.importingSubtitle}>
+              Decrypting and restoring your cards.{'\n'}Please don't close the app.
+            </Text>
+          </View>
+        </View>
+      )}
     </AppBackground>
   );
 }
@@ -406,5 +419,33 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
     fontSize: 13,
     lineHeight: 19,
+  },
+  importingOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  importingCard: {
+    width: '100%',
+    backgroundColor: theme.colors.surface,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: theme.colors.borderStrong,
+    padding: 32,
+    alignItems: 'center',
+    gap: 16,
+  },
+  importingTitle: {
+    color: theme.colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  importingSubtitle: {
+    color: theme.colors.textMuted,
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: 'center',
   },
 });
