@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppBackground } from '../../src/components/AppBackground';
 import { CardAppearanceEditor } from '../../src/components/CardAppearanceEditor';
 import { CardBrandPicker } from '../../src/components/CardBrandPicker';
+import { BankNamePicker } from '../../src/components/BankNamePicker';
 import { AppModal, ModalConfig } from '../../src/components/AppModal';
 import { ThemedButton } from '../../src/components/ThemedButton';
 import { getCardById, updateCard } from '../../src/storage/database';
@@ -167,8 +168,16 @@ export default function EditCardScreen() {
       setModal({ title: 'Validation', message: 'Please enter the CVV.', buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }] });
       return;
     }
+    if (selectedBrand === 'unknown') {
+      setModal({ title: 'Validation', message: 'Please select a card brand.', buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }] });
+      return;
+    }
     if (selectedBrand === 'custom' && !customBrandName.trim()) {
       setModal({ title: 'Validation', message: 'Please enter a custom card brand name.', buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }] });
+      return;
+    }
+    if (!bankName.trim()) {
+      setModal({ title: 'Validation', message: 'Please enter the bank name.', buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }] });
       return;
     }
 
@@ -220,15 +229,8 @@ export default function EditCardScreen() {
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
-              <CardBrandPicker
-                value={selectedBrand}
-                customBrandName={customBrandName}
-                detectedBrand={cardNumber.replace(/\D/g, '').length > 0 ? detectedBrand : undefined}
-                onChange={handleBrandChange}
-                onChangeCustomBrandName={setCustomBrandName}
-              />
-
-              <Field label="Cardholder Name" value={name} onChangeText={setName} placeholder="JOHN SMITH" autoCapitalize="characters" />
+              {/* ── Required fields ── */}
+              <Field label="Cardholder Name" value={name} onChangeText={setName} placeholder="JOHN SMITH" autoCapitalize="characters" required />
 
               <Field
                 label="Card Number"
@@ -237,14 +239,15 @@ export default function EditCardScreen() {
                 placeholder={isAmex ? '3782 822463 10005' : '4242 4242 4242 4242'}
                 keyboardType="number-pad"
                 maxLength={isAmex ? 17 : 19}
+                required
               />
 
               <View style={styles.row}>
                 <View style={styles.rowField}>
-                  <Field label="Expiry Month" value={expiryMonth} onChangeText={(t) => setExpiryMonth(t.replace(/\D/g, '').slice(0, 2))} placeholder="MM" keyboardType="number-pad" maxLength={2} />
+                  <Field label="Expiry Month" value={expiryMonth} onChangeText={(t) => setExpiryMonth(t.replace(/\D/g, '').slice(0, 2))} placeholder="MM" keyboardType="number-pad" maxLength={2} required />
                 </View>
                 <View style={styles.rowField}>
-                  <Field label="Expiry Year" value={expiryYear} onChangeText={(t) => setExpiryYear(t.replace(/\D/g, '').slice(0, 2))} placeholder="YY" keyboardType="number-pad" maxLength={2} />
+                  <Field label="Expiry Year" value={expiryYear} onChangeText={(t) => setExpiryYear(t.replace(/\D/g, '').slice(0, 2))} placeholder="YY" keyboardType="number-pad" maxLength={2} required />
                 </View>
               </View>
 
@@ -270,9 +273,24 @@ export default function EditCardScreen() {
                     <Text style={styles.fieldAccessoryText}>{showCvv ? 'Hide' : 'Show'}</Text>
                   </TouchableOpacity>
                 }
+                required
               />
 
+              <CardBrandPicker
+                value={selectedBrand}
+                customBrandName={customBrandName}
+                detectedBrand={cardNumber.replace(/\D/g, '').length > 0 ? detectedBrand : undefined}
+                onChange={handleBrandChange}
+                onChangeCustomBrandName={setCustomBrandName}
+                required
+              />
+
+              <BankNamePicker value={bankName} onChange={setBankName} required />
+
+              {/* ── Optional fields ── */}
               <Field label="Nickname (optional)" value={nickname} onChangeText={setNickname} placeholder="Travel Visa, Work Card…" autoCapitalize="words" />
+
+              <Field label="Card Type" value={cardType} onChangeText={setCardType} placeholder="Debit, Credit, Prepaid…" autoCapitalize="words" />
 
               <View style={styles.row}>
                 <View style={styles.rowField}>
@@ -282,10 +300,6 @@ export default function EditCardScreen() {
                   <Field label="Valid From Year" value={validFromYear} onChangeText={(t) => setValidFromYear(t.replace(/\D/g, '').slice(0, 2))} placeholder="YY" keyboardType="number-pad" maxLength={2} />
                 </View>
               </View>
-
-              <Field label="Bank Name" value={bankName} onChangeText={setBankName} placeholder="Chase, Barclays, HDFC…" autoCapitalize="words" />
-
-              <Field label="Card Type" value={cardType} onChangeText={setCardType} placeholder="Debit, Credit, Prepaid…" autoCapitalize="words" />
 
               <CardAppearanceEditor
                 previewCard={previewCard}

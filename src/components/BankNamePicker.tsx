@@ -10,62 +10,97 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-import type { CardBrand } from '../types';
-import { getBrandDisplayName } from '../utils/cardUtils';
 import { theme } from '../theme';
 
-const PRESET_BRANDS: CardBrand[] = [
-  'visa',
-  'mastercard',
-  'amex',
-  'discover',
-  'unionpay',
-  'jcb',
-  'rupay',
+export const FAMOUS_BANKS: string[] = [
+  // Americas
+  'Bank of America',
+  'BB&T',
+  'Bradesco',
+  'Capital One',
+  'Citibank',
+  'Goldman Sachs',
+  'Itaú',
+  'JPMorgan Chase',
+  'RBC',
+  'Scotiabank',
+  'TD Bank',
+  'US Bank',
+  'Wells Fargo',
+  // Europe
+  'Barclays',
+  'BBVA',
+  'BNP Paribas',
+  'Crédit Agricole',
+  'Deutsche Bank',
+  'ING',
+  'Intesa Sanpaolo',
+  'Lloyds Bank',
+  'NatWest',
+  'Nordea',
+  'Raiffeisen',
+  'Santander',
+  'Société Générale',
+  'UBS',
+  'UniCredit',
+  // UK / Global
+  'HSBC',
+  'Standard Chartered',
+  // Asia – China
+  'Agricultural Bank of China',
+  'Bank of China',
+  'China Construction Bank',
+  'ICBC',
+  // Asia – India
+  'Axis Bank',
+  'HDFC Bank',
+  'ICICI Bank',
+  'Kotak Mahindra Bank',
+  'State Bank of India',
+  // Asia – Japan
+  'Mizuho',
+  'Mitsubishi UFJ',
+  'Sumitomo Mitsui',
+  // Asia – SE Asia / Korea
+  'DBS Bank',
+  'KB Kookmin Bank',
+  'Maybank',
+  'OCBC',
+  'Shinhan Bank',
+  // Middle East
+  'Al Rajhi Bank',
+  'Emirates NBD',
+  'First Abu Dhabi Bank',
+  'Qatar National Bank',
+  // Africa
+  'Absa',
+  'Standard Bank',
+  // Australia / NZ
+  'ANZ',
+  'Commonwealth Bank',
+  'NAB',
+  'Westpac',
 ];
 
-function getBrandLabel(brand: CardBrand): string {
-  switch (brand) {
-    case 'visa':       return 'Visa';
-    case 'mastercard': return 'Mastercard';
-    case 'amex':       return 'Amex';
-    case 'discover':   return 'Discover';
-    case 'unionpay':   return 'UnionPay';
-    case 'jcb':        return 'JCB';
-    case 'rupay':      return 'RuPay';
-    default:           return brand;
-  }
-}
-
-interface CardBrandPickerProps {
-  value: CardBrand;
-  customBrandName?: string;
-  detectedBrand?: CardBrand;
-  onChange: (brand: CardBrand) => void;
-  onChangeCustomBrandName: (name: string) => void;
+interface BankNamePickerProps {
+  value: string;
+  onChange: (name: string) => void;
   required?: boolean;
 }
 
-export function CardBrandPicker({
-  value,
-  customBrandName,
-  detectedBrand,
-  onChange,
-  onChangeCustomBrandName,
-  required,
-}: CardBrandPickerProps) {
+export function BankNamePicker({ value, onChange, required }: BankNamePickerProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [customView, setCustomView] = useState(false);
   const [draftCustom, setDraftCustom] = useState('');
 
+  const isCustom = value !== '' && !FAMOUS_BANKS.includes(value);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return PRESET_BRANDS;
-    return PRESET_BRANDS.filter((b) => getBrandLabel(b).toLowerCase().includes(q));
+    if (!q) return FAMOUS_BANKS;
+    return FAMOUS_BANKS.filter((b) => b.toLowerCase().includes(q));
   }, [search]);
-
-  const currentLabel = value === 'unknown' ? '' : getBrandDisplayName(value, customBrandName);
 
   function openModal() {
     setSearch('');
@@ -82,22 +117,23 @@ export function CardBrandPicker({
   }
 
   function openCustomView() {
-    setDraftCustom(value === 'custom' ? (customBrandName ?? '') : '');
+    setDraftCustom(isCustom ? value : '');
     setCustomView(true);
   }
 
   function confirmCustom() {
     const trimmed = draftCustom.trim();
     if (!trimmed) return;
-    onChange('custom');
-    onChangeCustomBrandName(trimmed);
+    onChange(trimmed);
     closeModal();
   }
+
+  const displayLabel = value || 'Select or type a bank name';
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>
-        Card Brand{required ? <Text style={styles.requiredMark}> *</Text> : null}
+        Bank Name{required ? <Text style={styles.requiredMark}> *</Text> : null}
       </Text>
 
       <TouchableOpacity
@@ -105,17 +141,11 @@ export function CardBrandPicker({
         onPress={openModal}
         activeOpacity={0.8}
       >
-        <Text style={[styles.selectValue, !currentLabel && styles.selectPlaceholder]}>
-          {currentLabel || 'Select or detect a brand'}
+        <Text style={[styles.selectValue, !value && styles.selectPlaceholder]} numberOfLines={1}>
+          {displayLabel}
         </Text>
         <Feather name="chevron-down" size={18} color={theme.colors.textMuted} />
       </TouchableOpacity>
-
-      {detectedBrand && detectedBrand !== 'unknown' ? (
-        <Text style={styles.detected}>
-          Detected: {getBrandLabel(detectedBrand)}
-        </Text>
-      ) : null}
 
       <Modal
         visible={open}
@@ -127,13 +157,13 @@ export function CardBrandPicker({
           <View style={styles.modalCard}>
 
             {customView ? (
-              /* ── Custom brand input screen ── */
+              /* ── Custom input screen ── */
               <>
                 <View style={styles.modalHeader}>
                   <TouchableOpacity onPress={() => setCustomView(false)} activeOpacity={0.75}>
                     <Feather name="arrow-left" size={18} color={theme.colors.textMuted} />
                   </TouchableOpacity>
-                  <Text style={styles.modalTitle}>Custom Brand</Text>
+                  <Text style={styles.modalTitle}>Custom Bank Name</Text>
                   <TouchableOpacity onPress={closeModal} activeOpacity={0.75}>
                     <Feather name="x" size={18} color={theme.colors.textMuted} />
                   </TouchableOpacity>
@@ -144,7 +174,7 @@ export function CardBrandPicker({
                     style={styles.customInput}
                     value={draftCustom}
                     onChangeText={setDraftCustom}
-                    placeholder="e.g. Diners Club, Mir…"
+                    placeholder="e.g. Punjab National Bank"
                     placeholderTextColor={theme.colors.textMuted}
                     autoCapitalize="words"
                     autoCorrect={false}
@@ -164,10 +194,10 @@ export function CardBrandPicker({
                 </View>
               </>
             ) : (
-              /* ── Brand list screen ── */
+              /* ── Bank list screen ── */
               <>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Select Card Brand</Text>
+                  <Text style={styles.modalTitle}>Select Bank</Text>
                   <TouchableOpacity onPress={closeModal} activeOpacity={0.75}>
                     <Feather name="x" size={18} color={theme.colors.textMuted} />
                   </TouchableOpacity>
@@ -179,7 +209,7 @@ export function CardBrandPicker({
                     style={styles.searchInput}
                     value={search}
                     onChangeText={setSearch}
-                    placeholder="Search brands…"
+                    placeholder="Search banks…"
                     placeholderTextColor={theme.colors.textMuted}
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -195,39 +225,39 @@ export function CardBrandPicker({
                 >
                   {/* Custom option – always first */}
                   <TouchableOpacity
-                    style={[styles.optionRow, value === 'custom' ? styles.optionRowActive : null]}
+                    style={[styles.optionRow, isCustom ? styles.optionRowActive : null]}
                     onPress={openCustomView}
                     activeOpacity={0.8}
                   >
                     <Feather
                       name="edit-2"
                       size={14}
-                      color={value === 'custom' ? theme.colors.primary : theme.colors.textMuted}
+                      color={isCustom ? theme.colors.primary : theme.colors.textMuted}
                       style={styles.optionIcon}
                     />
-                    <Text style={[styles.optionText, value === 'custom' ? styles.optionTextActive : null]}>
-                      {value === 'custom' && customBrandName ? customBrandName : 'Custom'}
+                    <Text style={[styles.optionText, isCustom ? styles.optionTextActive : null]}>
+                      {isCustom ? value : 'Custom'}
                     </Text>
-                    {value === 'custom'
+                    {isCustom
                       ? <Feather name="check" size={16} color={theme.colors.primary} />
                       : <Feather name="chevron-right" size={14} color={theme.colors.textMuted} />
                     }
                   </TouchableOpacity>
 
-                  {filtered.map((brand) => {
-                    const isActive = brand === value;
+                  {filtered.map((bank) => {
+                    const isActive = bank === value;
                     return (
                       <TouchableOpacity
-                        key={brand}
+                        key={bank}
                         style={[styles.optionRow, isActive ? styles.optionRowActive : null]}
                         onPress={() => {
-                          onChange(brand);
+                          onChange(bank);
                           closeModal();
                         }}
                         activeOpacity={0.8}
                       >
                         <Text style={[styles.optionText, isActive ? styles.optionTextActive : null]}>
-                          {getBrandLabel(brand)}
+                          {bank}
                         </Text>
                         {isActive ? (
                           <Feather name="check" size={16} color={theme.colors.primary} />
@@ -238,7 +268,7 @@ export function CardBrandPicker({
 
                   {filtered.length === 0 ? (
                     <View style={styles.emptyWrap}>
-                      <Text style={styles.emptyText}>No brands found for "{search}"</Text>
+                      <Text style={styles.emptyText}>No banks found for "{search}"</Text>
                     </View>
                   ) : null}
                 </ScrollView>
@@ -287,11 +317,6 @@ const styles = StyleSheet.create({
   requiredMark: {
     color: '#FF4444',
     fontWeight: '700',
-  },
-  detected: {
-    color: theme.colors.primary,
-    fontSize: 12,
-    fontWeight: '600',
   },
   overlay: {
     flex: 1,

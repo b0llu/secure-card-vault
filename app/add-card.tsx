@@ -40,6 +40,7 @@ import { parseCardFromOCR } from '../src/utils/ocrParser';
 import { AppBackground } from '../src/components/AppBackground';
 import { CardAppearanceEditor } from '../src/components/CardAppearanceEditor';
 import { CardBrandPicker } from '../src/components/CardBrandPicker';
+import { BankNamePicker } from '../src/components/BankNamePicker';
 import { AppModal, ModalConfig } from '../src/components/AppModal';
 import { ThemedButton } from '../src/components/ThemedButton';
 import { theme } from '../src/theme';
@@ -288,10 +289,26 @@ export default function AddCardScreen() {
       });
       return;
     }
+    if (selectedBrand === 'unknown') {
+      setModal({
+        title: 'Validation',
+        message: 'Please select a card brand.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
+      return;
+    }
     if (selectedBrand === 'custom' && !customBrandName.trim()) {
       setModal({
         title: 'Validation',
         message: 'Please enter a custom card brand name.',
+        buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
+      });
+      return;
+    }
+    if (!bankName.trim()) {
+      setModal({
+        title: 'Validation',
+        message: 'Please enter the bank name.',
         buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
       });
       return;
@@ -333,7 +350,9 @@ export default function AddCardScreen() {
     cardNumber.replace(/\D/g, '').length >= 13 &&
     expiryMonth.length > 0 &&
     expiryYear.length > 0 &&
-    cvv.trim().length > 0;
+    cvv.trim().length > 0 &&
+    selectedBrand !== 'unknown' &&
+    bankName.trim().length > 0;
 
   return (
     <>
@@ -408,15 +427,7 @@ export default function AddCardScreen() {
 
                 <Text style={styles.orDivider}>Details</Text>
 
-                <CardBrandPicker
-                  value={selectedBrand}
-                  customBrandName={customBrandName}
-                  detectedBrand={cardNumber.replace(/\D/g, '').length > 0 ? detectedBrand : undefined}
-                  onChange={handleBrandChange}
-                  onChangeCustomBrandName={setCustomBrandName}
-                />
-
-                {/* ── Core fields ── */}
+                {/* ── Required fields ── */}
                 <Field
                   label="Cardholder Name"
                   value={name}
@@ -486,6 +497,18 @@ export default function AddCardScreen() {
                   required
                 />
 
+                <CardBrandPicker
+                  value={selectedBrand}
+                  customBrandName={customBrandName}
+                  detectedBrand={cardNumber.replace(/\D/g, '').length > 0 ? detectedBrand : undefined}
+                  onChange={handleBrandChange}
+                  onChangeCustomBrandName={setCustomBrandName}
+                  required
+                />
+
+                <BankNamePicker value={bankName} onChange={setBankName} required />
+
+                {/* ── Optional fields ── */}
                 <Field
                   label="Nickname (optional)"
                   value={nickname}
@@ -494,7 +517,14 @@ export default function AddCardScreen() {
                   autoCapitalize="words"
                 />
 
-                {/* ── Extra fields ── */}
+                <Field
+                  label="Card Type"
+                  value={cardType}
+                  onChangeText={setCardType}
+                  placeholder="Debit, Credit, Prepaid…"
+                  autoCapitalize="words"
+                />
+
                 <View style={styles.row}>
                   <View style={styles.rowField}>
                     <Field
@@ -517,22 +547,6 @@ export default function AddCardScreen() {
                     />
                   </View>
                 </View>
-
-                <Field
-                  label="Bank Name"
-                  value={bankName}
-                  onChangeText={setBankName}
-                  placeholder="Chase, Barclays, HDFC…"
-                  autoCapitalize="words"
-                />
-
-                <Field
-                  label="Card Type"
-                  value={cardType}
-                  onChangeText={setCardType}
-                  placeholder="Debit, Credit, Prepaid…"
-                  autoCapitalize="words"
-                />
 
                 {hasScannedCard ? (
                   <CardAppearanceEditor

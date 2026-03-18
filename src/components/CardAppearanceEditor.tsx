@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -206,25 +207,31 @@ export function CardAppearanceEditor({
               </TouchableOpacity>
             </View>
 
-            <View style={styles.modalPreviewRow}>
-              <View style={[styles.modalPreviewSwatch, { backgroundColor: draftColor }]} />
-              <Text style={styles.modalPreviewText}>{draftColor}</Text>
-            </View>
-
-            <View style={styles.modalCardPreviewWrap}>
-              <CardView card={pickerPreviewCard} />
-            </View>
-
-            <ColorPicker
-              value={draftColor}
-              onChangeJS={handlePickerChange}
-              style={styles.picker}
-              thumbSize={28}
-              sliderThickness={22}
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.modalScrollContent}
+              keyboardShouldPersistTaps="handled"
             >
-              <Panel1 style={styles.pickerPanel} />
-              <HueSlider style={styles.hueSlider} />
-            </ColorPicker>
+              <View style={styles.modalPreviewRow}>
+                <View style={[styles.modalPreviewSwatch, { backgroundColor: draftColor }]} />
+                <Text style={styles.modalPreviewText}>{draftColor}</Text>
+              </View>
+
+              <View style={styles.modalCardPreviewWrap}>
+                <CardView card={pickerPreviewCard} />
+              </View>
+
+              <ColorPicker
+                value={draftColor}
+                onChangeJS={handlePickerChange}
+                style={styles.picker}
+                thumbSize={28}
+                sliderThickness={22}
+              >
+                <Panel1 style={styles.pickerPanel} />
+                <HueSlider style={styles.hueSlider} />
+              </ColorPicker>
+            </ScrollView>
 
             <View style={styles.modalActions}>
               <ThemedButton
@@ -353,6 +360,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.borderStrong,
     padding: 18,
+    gap: 16,
+    maxHeight: '90%',
+    overflow: 'hidden',
+  },
+  modalScrollContent: {
     gap: 16,
   },
   modalHeader: {
