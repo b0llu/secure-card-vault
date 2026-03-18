@@ -21,7 +21,7 @@ import { AppModal, ModalConfig } from '../../src/components/AppModal';
 import { ThemedButton } from '../../src/components/ThemedButton';
 import { getCardById, updateCard } from '../../src/storage/database';
 import { detectCardBrand, formatCardNumber, isValidExpiry } from '../../src/utils/cardUtils';
-import { Card, CardBrand, CardThemeColorSource } from '../../src/types';
+import { Card, CardBrand } from '../../src/types';
 import { theme } from '../../src/theme';
 
 const PLACEHOLDER_COLOR = theme.colors.textMuted;
@@ -37,8 +37,6 @@ export default function EditCardScreen() {
   const [customBrandName, setCustomBrandName] = useState('');
   const [brandManuallySet, setBrandManuallySet] = useState(false);
   const [themeColor, setThemeColor] = useState<string | undefined>(undefined);
-  const [detectedThemeColor, setDetectedThemeColor] = useState<string | undefined>(undefined);
-  const [themeColorSource, setThemeColorSource] = useState<CardThemeColorSource | undefined>(undefined);
 
   // Form fields
   const [name, setName] = useState('');
@@ -80,8 +78,6 @@ export default function EditCardScreen() {
       validFromYear: validFromYear || undefined,
       cardType: cardType.trim() || undefined,
       themeColor,
-      detectedThemeColor,
-      themeColorSource,
     };
   }, [
     bankName,
@@ -89,14 +85,12 @@ export default function EditCardScreen() {
     cardType,
     customBrandName,
     cvv,
-    detectedThemeColor,
     expiryMonth,
     expiryYear,
     name,
     nickname,
     selectedBrand,
     themeColor,
-    themeColorSource,
     validFromMonth,
     validFromYear,
   ]);
@@ -126,8 +120,6 @@ export default function EditCardScreen() {
         setSelectedBrand(card.brand);
         setCustomBrandName(card.customBrandName ?? '');
         setThemeColor(card.themeColor);
-        setDetectedThemeColor(card.detectedThemeColor);
-        setThemeColorSource(card.themeColorSource);
         setBrandManuallySet(
           card.brand === 'custom' ||
           card.brand !== detectCardBrand(card.cardNumber) ||
@@ -148,10 +140,8 @@ export default function EditCardScreen() {
 
   const handleAppearanceChange = (appearance: {
     themeColor?: string;
-    themeColorSource?: CardThemeColorSource;
   }) => {
     setThemeColor(appearance.themeColor);
-    setThemeColorSource(appearance.themeColor ? appearance.themeColorSource : undefined);
   };
 
   const handleSave = async () => {
@@ -198,8 +188,6 @@ export default function EditCardScreen() {
         validFromYear: validFromYear || undefined,
         cardType: cardType.trim() || undefined,
         themeColor,
-        detectedThemeColor,
-        themeColorSource: themeColor ? themeColorSource : undefined,
       });
       router.back();
     } catch (err: any) {
@@ -302,8 +290,6 @@ export default function EditCardScreen() {
               <CardAppearanceEditor
                 previewCard={previewCard}
                 themeColor={themeColor}
-                detectedThemeColor={detectedThemeColor}
-                themeColorSource={themeColorSource}
                 onChange={handleAppearanceChange}
               />
             </ScrollView>

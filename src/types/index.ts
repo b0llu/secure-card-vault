@@ -11,8 +11,6 @@ export type CardBrand =
   | 'custom'
   | 'unknown';
 
-export type CardThemeColorSource = 'detected' | 'manual';
-
 export interface Card {
   id: string;
   name: string;          // Cardholder name
@@ -28,8 +26,6 @@ export interface Card {
   validFromYear?: string;  // "23", "24", …
   cardType?: string;       // e.g. "Debit", "International Debit", "Coral"
   themeColor?: string;     // Hex color used to theme the card in UI
-  detectedThemeColor?: string; // Auto-detected color from the scanned image
-  themeColorSource?: CardThemeColorSource;
 }
 
 // Raw row as returned from SQLite

@@ -35,7 +35,6 @@ import TextRecognition from '@react-native-ml-kit/text-recognition';
 import * as ImagePicker from 'expo-image-picker';
 
 import { addCard } from '../src/storage/database';
-import { detectCardThemeColor } from '../src/services/cardAppearanceService';
 import { detectCardBrand, isValidExpiry, formatCardNumber } from '../src/utils/cardUtils';
 import { parseCardFromOCR } from '../src/utils/ocrParser';
 import { AppBackground } from '../src/components/AppBackground';
@@ -44,7 +43,7 @@ import { CardBrandPicker } from '../src/components/CardBrandPicker';
 import { AppModal, ModalConfig } from '../src/components/AppModal';
 import { ThemedButton } from '../src/components/ThemedButton';
 import { theme } from '../src/theme';
-import type { Card, CardBrand, CardThemeColorSource } from '../src/types';
+import type { Card, CardBrand } from '../src/types';
 
 const FIELD_PLACEHOLDER_COLOR = theme.colors.textMuted;
 
@@ -65,8 +64,6 @@ export default function AddCardScreen() {
   const [customBrandName, setCustomBrandName] = useState('');
   const [brandManuallySet, setBrandManuallySet] = useState(false);
   const [themeColor, setThemeColor] = useState<string | undefined>(undefined);
-  const [detectedThemeColor, setDetectedThemeColor] = useState<string | undefined>(undefined);
-  const [themeColorSource, setThemeColorSource] = useState<CardThemeColorSource | undefined>(undefined);
   const [hasScannedCard, setHasScannedCard] = useState(false);
 
   // Core form fields
@@ -112,8 +109,6 @@ export default function AddCardScreen() {
       validFromYear: validFromYear || undefined,
       cardType: cardType.trim() || undefined,
       themeColor,
-      detectedThemeColor,
-      themeColorSource,
     };
   }, [
     bankName,
@@ -121,14 +116,12 @@ export default function AddCardScreen() {
     cardType,
     customBrandName,
     cvv,
-    detectedThemeColor,
     expiryMonth,
     expiryYear,
     name,
     nickname,
     selectedBrand,
     themeColor,
-    themeColorSource,
     validFromMonth,
     validFromYear,
   ]);
@@ -150,20 +143,15 @@ export default function AddCardScreen() {
 
   const handleAppearanceChange = useCallback((appearance: {
     themeColor?: string;
-    themeColorSource?: CardThemeColorSource;
   }) => {
     setThemeColor(appearance.themeColor);
-    setThemeColorSource(appearance.themeColor ? appearance.themeColorSource : undefined);
   }, []);
 
   // ── OCR ─────────────────────────────────────────────────────────────────────
 
   const processImage = useCallback(async (fileUri: string) => {
     try {
-      const [result, extractedThemeColor] = await Promise.all([
-        TextRecognition.recognize(fileUri),
-        detectCardThemeColor(fileUri),
-      ]);
+      const result = await TextRecognition.recognize(fileUri);
 
       const parsed = parseCardFromOCR(result);
       const hasDetectedData = Boolean(
@@ -183,13 +171,6 @@ export default function AddCardScreen() {
       if (parsed.cardHolderName) setName(parsed.cardHolderName);
       if (parsed.bankName) setBankName(parsed.bankName);
       if (parsed.cardType) setCardType(parsed.cardType);
-      if (hasDetectedData && extractedThemeColor) {
-        setDetectedThemeColor(extractedThemeColor);
-        if (themeColorSource !== 'manual') {
-          setThemeColor(extractedThemeColor);
-          setThemeColorSource('detected');
-        }
-      }
 
       if (hasDetectedData) {
         setHasScannedCard(true);
@@ -209,7 +190,7 @@ export default function AddCardScreen() {
         buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
       });
     }
-  }, [themeColorSource]);
+  }, []);
 
   const handleCapturePhoto = useCallback(async () => {
     if (!cameraRef.current) return;
@@ -332,8 +313,6 @@ export default function AddCardScreen() {
         validFromYear: validFromYear || undefined,
         cardType: cardType.trim() || undefined,
         themeColor,
-        detectedThemeColor,
-        themeColorSource: themeColor ? themeColorSource : undefined,
       });
       router.back();
     } catch (err: any) {
@@ -559,8 +538,6 @@ export default function AddCardScreen() {
                   <CardAppearanceEditor
                     previewCard={previewCard}
                     themeColor={themeColor}
-                    detectedThemeColor={detectedThemeColor}
-                    themeColorSource={themeColorSource}
                     onChange={handleAppearanceChange}
                   />
                 ) : null}

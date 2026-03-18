@@ -13,7 +13,7 @@ import ColorPicker, {
   type ColorFormatsObject,
 } from 'reanimated-color-picker';
 
-import type { Card, CardThemeColorSource } from '../types';
+import type { Card } from '../types';
 import {
   CARD_COLOR_PRESETS,
   getBrandDefaultColor,
@@ -26,11 +26,8 @@ import { theme } from '../theme';
 interface CardAppearanceEditorProps {
   previewCard: Card;
   themeColor?: string;
-  detectedThemeColor?: string;
-  themeColorSource?: CardThemeColorSource;
   onChange: (appearance: {
     themeColor?: string;
-    themeColorSource?: CardThemeColorSource;
   }) => void;
 }
 
@@ -89,13 +86,10 @@ function CustomChip({
 export function CardAppearanceEditor({
   previewCard,
   themeColor,
-  detectedThemeColor,
-  themeColorSource,
   onChange,
 }: CardAppearanceEditorProps) {
   const [pickerVisible, setPickerVisible] = useState(false);
 
-  const detected = normalizeHexColor(detectedThemeColor);
   const selected = normalizeHexColor(themeColor);
   const usesBrandDefault = !selected;
   const isPresetColor = selected
@@ -103,7 +97,6 @@ export function CardAppearanceEditor({
     : false;
   const customButtonColor =
     selected ??
-    detected ??
     getBrandDefaultColor(previewCard.brand);
 
   const [draftColor, setDraftColor] = useState(customButtonColor);
@@ -111,7 +104,6 @@ export function CardAppearanceEditor({
     () => ({
       ...previewCard,
       themeColor: draftColor,
-      themeColorSource: 'manual',
     }),
     [draftColor, previewCard],
   );
@@ -122,11 +114,8 @@ export function CardAppearanceEditor({
 
   const statusCopy = useMemo(() => {
     if (!selected) return 'Using brand default colors.';
-    if (themeColorSource === 'detected' && detected && selected === detected) {
-      return `Using detected scan color ${detected}.`;
-    }
     return `Using custom color ${selected}.`;
-  }, [detected, selected, themeColorSource]);
+  }, [selected]);
 
   const openCustomPicker = () => {
     setDraftColor(customButtonColor);
@@ -141,7 +130,7 @@ export function CardAppearanceEditor({
   };
 
   const applyCustomColor = () => {
-    onChange({ themeColor: draftColor, themeColorSource: 'manual' });
+    onChange({ themeColor: draftColor });
     setPickerVisible(false);
   };
 
@@ -166,21 +155,13 @@ export function CardAppearanceEditor({
             label="Default"
             icon="layers"
             active={usesBrandDefault}
-            onPress={() => onChange({ themeColor: undefined, themeColorSource: undefined })}
+            onPress={() => onChange({ themeColor: undefined })}
           />
           <CustomChip
             color={customButtonColor}
             active={!usesBrandDefault && !isPresetColor}
             onPress={openCustomPicker}
           />
-          {detected ? (
-            <ModeChip
-              label="Use Detected"
-              icon="camera"
-              active={themeColorSource === 'detected' && selected === detected}
-              onPress={() => onChange({ themeColor: detected, themeColorSource: 'detected' })}
-            />
-          ) : null}
         </View>
 
         <View style={styles.swatchGrid}>
@@ -190,7 +171,7 @@ export function CardAppearanceEditor({
               <TouchableOpacity
                 key={preset.value}
                 activeOpacity={0.82}
-                onPress={() => onChange({ themeColor: preset.value, themeColorSource: 'manual' })}
+                onPress={() => onChange({ themeColor: preset.value })}
                 style={[styles.swatchButton, isSelected && styles.swatchButtonSelected]}
               >
                 <View style={[styles.swatchDot, { backgroundColor: preset.value }]} />
