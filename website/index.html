@@ -814,7 +814,7 @@
     /* ── Responsive ─────────────────────────────────────────── */
     @media (max-width: 1024px) {
       .hero-grid { grid-template-columns: 1fr; gap: 4rem; }
-      .hero-visual { min-height: 480px; }
+      .hero-visual { min-height: 560px; }
       .floating-card-1 { left: 2%; }
       .floating-card-2 { right: 2%; }
       .security-grid { grid-template-columns: 1fr; gap: 3rem; }
@@ -825,10 +825,79 @@
       .features-grid { grid-template-columns: 1fr 1fr; }
       .how-steps { grid-template-columns: 1fr; }
       .how-steps::before { display: none; }
-      .phones-row { gap: 1.25rem; }
-      .phone { width: 200px; height: 415px; }
-      .phone-scene:first-child, .phone-scene:last-child { display: none; }
+      /* ── Mobile screenshot peek carousel ── */
+
+      /*
+        Key constraint: body has overflow-x:hidden, so we CANNOT use
+        negative margins to break out. Carousel lives inside the container.
+        Symmetric padding = (container - slide) / 2 ensures all 3 slides
+        can reach their snap point.
+
+        container ≈ 100vw - 48px (1.5rem × 2 container padding)
+        slide     = container - 72px (36px padding × 2)
+                  = 100vw - 120px
+        peek      = 36px padding - 12px gap = 24px of adjacent slide visible
+      */
+      .phones-row {
+        display: flex;
+        overflow-x: scroll;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 12px;
+        align-items: flex-end;
+        /* MUST override desktop justify-content:center or snap breaks */
+        justify-content: flex-start;
+        padding: 1rem 36px 2.5rem;
+        scroll-padding-left: 36px;
+        /* No margin hacks — stay within container */
+      }
+      .phones-row::-webkit-scrollbar { display: none; }
+
+      .phone-scene {
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        flex-shrink: 0;
+        /* slide = container - 2×36px padding = 100vw - 120px */
+        width: calc(100vw - 120px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.25rem;
+      }
+      .phone-scene:first-child,
+      .phone-scene:last-child { display: flex; }
       .phone-scene.center { transform: none; }
+
+      /* Phone size: fills nearly the full slide width, responsive across devices */
+      .phone {
+        width: calc(100vw - 140px);
+        height: calc((100vw - 140px) * 2.08);
+        max-width: 250px;
+        max-height: 520px;
+      }
+
+      /* Dot indicators */
+      .carousel-dots {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 1.5rem;
+      }
+      .carousel-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        transition: width 0.28s ease, background 0.28s ease, border-radius 0.28s ease;
+        cursor: pointer;
+      }
+      .carousel-dot.active {
+        width: 22px;
+        border-radius: 3px;
+        background: var(--gold);
+      }
       .promise-grid { grid-template-columns: 1fr 1fr; }
       .floating-card-1 { display: none; }
       .floating-card-2 { display: none; }

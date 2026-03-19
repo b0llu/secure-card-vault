@@ -80,3 +80,95 @@ const counterObserver = new IntersectionObserver(
 document.querySelectorAll('[data-count]').forEach((el) =>
   counterObserver.observe(el)
 );
+
+/* ── Screenshot carousel (mobile only) ──────────────────────── */
+function initScreenshotCarousel() {
+  if (window.innerWidth > 768) return;
+
+  const row = document.querySelector('.phones-row');
+  if (!row) return;
+
+  const scenes = Array.from(row.querySelectorAll('.phone-scene'));
+  const PEEK = 36; // must match scroll-padding-left in CSS
+
+  // Returns the scrollLeft that snaps a given scene into view
+  const snapLeft = (scene) => scene.offsetLeft - PEEK;
+
+  // Build dot indicators and insert after the row
+  const dotsWrap = document.createElement('div');
+  dotsWrap.className = 'carousel-dots';
+  scenes.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'carousel-dot' + (i === 1 ? ' active' : '');
+    dot.addEventListener('click', () => {
+      row.scrollTo({ left: snapLeft(scenes[i]), behavior: 'smooth' });
+    });
+    dotsWrap.appendChild(dot);
+  });
+  row.parentNode.insertBefore(dotsWrap, row.nextSibling);
+
+  const dots = Array.from(dotsWrap.querySelectorAll('.carousel-dot'));
+
+  // Jump to slide 1 (Home screen) instantly — no animation
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      row.scrollLeft = snapLeft(scenes[1]);
+    });
+  });
+
+  // Update active dot as user scrolls
+  let scrollTimer;
+  let currentIdx = 1;
+
+  const getActiveIdx = () => {
+    let activeIdx = 0, minDist = Infinity;
+    scenes.forEach((scene, i) => {
+      const dist = Math.abs(snapLeft(scene) - row.scrollLeft);
+      if (dist < minDist) { minDist = dist; activeIdx = i; }
+    });
+    return activeIdx;
+  };
+
+  row.addEventListener('scroll', () => {
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+      currentIdx = getActiveIdx();
+      dots.forEach((d, i) => d.classList.toggle('active', i === currentIdx));
+    }, 50);
+  }, { passive: true });
+
+  // Auto-advance
+  let autoTimer;
+  let paused = false;
+
+  const advance = () => {
+    if (paused) return;
+    currentIdx = (currentIdx + 1) % scenes.length;
+    row.scrollTo({ left: snapLeft(scenes[currentIdx]), behavior: 'smooth' });
+    dots.forEach((d, i) => d.classList.toggle('active', i === currentIdx));
+  };
+
+  const startAuto = () => { autoTimer = setInterval(advance, 3000); };
+  const stopAuto = () => clearInterval(autoTimer);
+
+  const pauseAuto = () => {
+    paused = true;
+    stopAuto();
+  };
+  const resumeAuto = () => {
+    paused = false;
+    stopAuto();
+    startAuto();
+  };
+
+  row.addEventListener('touchstart', pauseAuto, { passive: true });
+  row.addEventListener('touchend', () => setTimeout(resumeAuto, 2500), { passive: true });
+
+  document.addEventListener('visibilitychange', () => {
+    document.hidden ? stopAuto() : startAuto();
+  });
+
+  startAuto();
+}
+
+initScreenshotCarousel();
