@@ -19,10 +19,9 @@ import { CardView } from '../../src/components/CardView';
 import { ThemedButton } from '../../src/components/ThemedButton';
 import { deleteCard, getCardById } from '../../src/storage/database';
 import { Card } from '../../src/types';
-import { formatCardNumber, formatExpiry, getBrandDisplayName, maskCardNumber } from '../../src/utils/cardUtils';
+import { formatCardNumber, formatExpiry, getBrandDisplayName } from '../../src/utils/cardUtils';
 import { theme } from '../../src/theme';
 
-const REVEAL_DURATION_MS = 5_000;
 const CLIPBOARD_CLEAR_DELAY_MS = 20_000;
 
 export default function CardDetailScreen() {
@@ -31,19 +30,12 @@ export default function CardDetailScreen() {
 
   const [card, setCard] = useState<Card | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showCVV, setShowCVV] = useState(false);
-  const [showNumber, setShowNumber] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [modal, setModal] = useState<ModalConfig | null>(null);
 
-  const cvvTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const numberTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clipboardTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const toastOpacity = useRef(new Animated.Value(0)).current;
-  const numberProgress = useRef(new Animated.Value(1)).current;
-  const cvvProgress = useRef(new Animated.Value(1)).current;
 
   const showToast = useCallback(
     (field: string) => {
@@ -67,11 +59,8 @@ export default function CardDetailScreen() {
       })();
 
       return () => {
-        if (cvvTimer.current) clearTimeout(cvvTimer.current);
-        if (numberTimer.current) clearTimeout(numberTimer.current);
         if (clipboardTimer.current) {
           clearTimeout(clipboardTimer.current);
-          // Clear clipboard immediately when leaving the screen
           Clipboard.setStringAsync('').catch(() => {});
         }
       };
@@ -85,42 +74,8 @@ export default function CardDetailScreen() {
     }, CLIPBOARD_CLEAR_DELAY_MS);
   };
 
-  const handleRevealCVV = () => {
-    setShowCVV(true);
-    cvvProgress.setValue(1);
-    Animated.timing(cvvProgress, {
-      toValue: 0,
-      duration: REVEAL_DURATION_MS,
-      useNativeDriver: false,
-    }).start();
-    if (cvvTimer.current) clearTimeout(cvvTimer.current);
-    cvvTimer.current = setTimeout(() => {
-      setShowCVV(false);
-      cvvProgress.setValue(1);
-    }, REVEAL_DURATION_MS);
-  };
-
-  const handleRevealNumber = () => {
-    setShowNumber(true);
-    numberProgress.setValue(1);
-    Animated.timing(numberProgress, {
-      toValue: 0,
-      duration: REVEAL_DURATION_MS,
-      useNativeDriver: false,
-    }).start();
-    if (numberTimer.current) clearTimeout(numberTimer.current);
-    numberTimer.current = setTimeout(() => {
-      setShowNumber(false);
-      numberProgress.setValue(1);
-    }, REVEAL_DURATION_MS);
-  };
-
   const handleCopyCardNumber = async () => {
     if (!card) return;
-    if (!showNumber) {
-      handleRevealNumber();
-      return;
-    }
     await Clipboard.setStringAsync(card.cardNumber);
     showToast('Card number copied');
     scheduleClipboardClear();
@@ -128,10 +83,6 @@ export default function CardDetailScreen() {
 
   const handleCopyCVV = async () => {
     if (!card) return;
-    if (!showCVV) {
-      handleRevealCVV();
-      return;
-    }
     await Clipboard.setStringAsync(card.cvv);
     showToast('CVV copied');
     scheduleClipboardClear();
@@ -186,17 +137,15 @@ export default function CardDetailScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.cardWrapper}>
-            <CardView card={card} showCVV={showCVV} showNumber={showNumber} />
+            <CardView card={card} showNumber={true} />
           </View>
 
           <View style={styles.infoSection}>
             <InfoRow label="Cardholder" value={card.name} />
-            <InteractiveInfoRow
+            <CopyInfoRow
               label="Card Number"
-              value={showNumber ? formatCardNumber(card.cardNumber) : maskCardNumber(card.cardNumber)}
-              revealed={showNumber}
-              progress={numberProgress}
-              onPress={handleCopyCardNumber}
+              value={formatCardNumber(card.cardNumber)}
+              onCopy={handleCopyCardNumber}
             />
             {card.validFromMonth && card.validFromYear ? (
               <InfoRow
@@ -208,12 +157,10 @@ export default function CardDetailScreen() {
               label="Expiry"
               value={formatExpiry(card.expiryMonth, card.expiryYear)}
             />
-            <InteractiveInfoRow
+            <CopyInfoRow
               label="CVV"
-              value={showCVV ? card.cvv : card.cvv.length === 4 ? '••••' : '•••'}
-              revealed={showCVV}
-              progress={cvvProgress}
-              onPress={handleCopyCVV}
+              value={card.cvv}
+              onCopy={handleCopyCVV}
               mono
             />
             {card.bankName ? <InfoRow label="Bank" value={card.bankName} /> : null}
@@ -274,32 +221,34 @@ function InfoRow({
   );
 }
 
-function InteractiveInfoRow({
+function CopyInfoRow({
   label,
   value,
-  revealed,
-  progress,
-  onPress,
+  onCopy,
   mono = true,
 }: {
   label: string;
   value: string;
-  revealed: boolean;
-  progress: Animated.Value;
-  onPress: () => void;
+  onCopy: () => void;
   mono?: boolean;
 }) {
+  const [copied, setCopied] = React.useState(false);
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handlePress = () => {
+    onCopy();
+    setCopied(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <TouchableOpacity
       style={styles.interactiveRow}
-      onPress={onPress}
+      onPress={handlePress}
       activeOpacity={0.72}
       accessibilityRole="button"
-      accessibilityLabel={
-        revealed
-          ? `Copy ${label}`
-          : `Reveal ${label}. Tap once to reveal, tap again to copy.`
-      }
+      accessibilityLabel={`Copy ${label}`}
     >
       <Text style={styles.infoLabel}>{label}</Text>
 
@@ -308,33 +257,14 @@ function InteractiveInfoRow({
           {value}
         </Text>
 
-        <View style={[styles.actionPill, revealed && styles.actionPillRevealed]}>
+        <View style={[styles.copyIconBtn, copied && styles.copyIconBtnActive]}>
           <Feather
-            name={revealed ? 'copy' : 'eye'}
-            size={11}
-            color={revealed ? theme.colors.primary : theme.colors.textMuted}
+            name={copied ? 'check' : 'copy'}
+            size={13}
+            color={copied ? theme.colors.primary : theme.colors.textMuted}
           />
-          <Text style={[styles.actionPillText, revealed && styles.actionPillTextRevealed]}>
-            {revealed ? 'Copy' : 'Reveal'}
-          </Text>
         </View>
       </View>
-
-      {revealed && (
-        <View style={styles.progressTrack}>
-          <Animated.View
-            style={[
-              styles.progressFill,
-              {
-                width: progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ['0%', '100%'],
-                }),
-              },
-            ]}
-          />
-        </View>
-      )}
     </TouchableOpacity>
   );
 }
@@ -398,7 +328,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
     gap: 12,
-    position: 'relative',
   },
   interactiveRight: {
     flex: 2,
@@ -407,44 +336,19 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     gap: 10,
   },
-  progressTrack: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 1.5,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: theme.colors.primary,
-    opacity: 0.5,
-  },
-  actionPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    height: 28,
-    paddingHorizontal: 10,
-    borderRadius: 999,
+  copyIconBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     borderWidth: 1,
-    borderColor: theme.colors.borderStrong,
-    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  actionPillRevealed: {
+  copyIconBtnActive: {
     borderColor: 'rgba(184,184,184,0.4)',
     backgroundColor: theme.colors.primarySoft,
-  },
-  actionPillText: {
-    color: theme.colors.textMuted,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  actionPillTextRevealed: {
-    color: theme.colors.primary,
   },
   infoLabel: {
     color: theme.colors.textMuted,

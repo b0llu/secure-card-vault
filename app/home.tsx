@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,6 +22,7 @@ import { Card } from '../src/types';
 import { getCards } from '../src/storage/database';
 import {
   formatCardNumber,
+  formatExpiry,
   getBrandDisplayName,
   maskCardNumber,
 } from '../src/utils/cardUtils';
@@ -295,10 +297,14 @@ export default function HomeScreen() {
 }
 
 const REVEAL_MS = 5_000;
+const CLIPBOARD_CLEAR_DELAY_MS = 20_000;
 
 function CardListItem({ item, onNavigate }: { item: Card; onNavigate: () => void }) {
   const [revealed, setRevealed] = useState(false);
+  const [copiedField, setCopiedField] = useState<'number' | 'cvv' | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clipboardTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressAnim = useRef(new Animated.Value(1)).current;
   const animRef = useRef<Animated.CompositeAnimation | null>(null);
   const appearance = getResolvedCardAppearance(item);
@@ -307,6 +313,8 @@ function CardListItem({ item, onNavigate }: { item: Card; onNavigate: () => void
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+      if (clipboardTimer.current) clearTimeout(clipboardTimer.current);
       animRef.current?.stop();
     };
   }, []);
@@ -338,6 +346,31 @@ function CardListItem({ item, onNavigate }: { item: Card; onNavigate: () => void
     startReveal();
   };
 
+  const scheduleClipboardClear = () => {
+    if (clipboardTimer.current) clearTimeout(clipboardTimer.current);
+    clipboardTimer.current = setTimeout(async () => {
+      await Clipboard.setStringAsync('');
+    }, CLIPBOARD_CLEAR_DELAY_MS);
+  };
+
+  const handleCopyNumber = async (e: any) => {
+    e.stopPropagation?.();
+    await Clipboard.setStringAsync(item.cardNumber);
+    setCopiedField('number');
+    scheduleClipboardClear();
+    if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    copiedTimer.current = setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleCopyCVV = async (e: any) => {
+    e.stopPropagation?.();
+    await Clipboard.setStringAsync(item.cvv);
+    setCopiedField('cvv');
+    scheduleClipboardClear();
+    if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    copiedTimer.current = setTimeout(() => setCopiedField(null), 2000);
+  };
+
   const cardLabel = [
     brandLabel,
     item.nickname,
@@ -358,7 +391,7 @@ function CardListItem({ item, onNavigate }: { item: Card; onNavigate: () => void
         end={{ x: 1, y: 1 }}
         style={styles.cardRow}
       >
-        {/* Countdown sweep overlay — adapts to card brightness */}
+        {/* Countdown sweep overlay */}
         {revealed && (
           <View style={styles.cardSweepTrack} pointerEvents="none">
             <Animated.View
@@ -400,22 +433,72 @@ function CardListItem({ item, onNavigate }: { item: Card; onNavigate: () => void
           ) : null}
         </View>
 
-        {/* Card number */}
-        <Text style={[styles.cardNumber, { color: appearance.text }]}>
-          {revealed ? formatCardNumber(item.cardNumber) : maskCardNumber(item.cardNumber)}
-        </Text>
-
-        {/* CVV row */}
-        <View style={styles.cardCvvRow}>
-          <Text style={[styles.cardCvvLabel, { color: appearance.mutedText }]}>CVV</Text>
-          <Text
-            style={[
-              styles.cardCvvValue,
-              { color: revealed ? appearance.text : appearance.mutedText },
-            ]}
-          >
-            {revealed ? item.cvv : item.cvv.length === 4 ? '••••' : '•••'}
+        {/* Card number + copy icon */}
+        <View style={styles.cardNumberRow}>
+          <Text style={[styles.cardNumber, { color: appearance.text }]} numberOfLines={1}>
+            {revealed ? formatCardNumber(item.cardNumber) : maskCardNumber(item.cardNumber)}
           </Text>
+          <TouchableOpacity
+            onPress={handleCopyNumber}
+            style={[
+              styles.copyIconBtn,
+              {
+                borderColor: copiedField === 'number' ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.18)',
+                backgroundColor: copiedField === 'number' ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.07)',
+              },
+            ]}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Copy card number"
+          >
+            <Feather
+              name={copiedField === 'number' ? 'check' : 'copy'}
+              size={13}
+              color={copiedField === 'number' ? appearance.text : appearance.mutedText}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* CVV + EXP unified metadata row */}
+        <View style={styles.cardDataRow}>
+          <View style={styles.cardDataItem}>
+            <Text style={[styles.cardDataLabel, { color: appearance.mutedText }]}>CVV</Text>
+            <View style={styles.cardDataValueRow}>
+              <Text style={[styles.cardDataValue, { color: revealed ? appearance.text : appearance.mutedText }]}>
+                {revealed ? item.cvv : item.cvv.length === 4 ? '••••' : '•••'}
+              </Text>
+              <TouchableOpacity
+                onPress={handleCopyCVV}
+                style={[
+                  styles.copyIconBtnSm,
+                  {
+                    borderColor: copiedField === 'cvv' ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.18)',
+                    backgroundColor: copiedField === 'cvv' ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.07)',
+                  },
+                ]}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Copy CVV"
+              >
+                <Feather
+                  name={copiedField === 'cvv' ? 'check' : 'copy'}
+                  size={11}
+                  color={copiedField === 'cvv' ? appearance.text : appearance.mutedText}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={[styles.cardDataDivider, { backgroundColor: appearance.mutedText, opacity: 0.25 }]} />
+
+          <View style={styles.cardDataItem}>
+            <Text style={[styles.cardDataLabel, { color: appearance.mutedText }]}>EXP</Text>
+            <Text style={[styles.cardDataValue, { color: appearance.text }]}>
+              {formatExpiry(item.expiryMonth, item.expiryYear)}
+            </Text>
+          </View>
         </View>
 
         {/* Footer */}
@@ -596,7 +679,7 @@ const styles = StyleSheet.create({
   cardRow: {
     borderRadius: 24,
     padding: 18,
-    gap: 18,
+    gap: 12,
   },
   cardRowTop: {
     flexDirection: 'row',
@@ -612,7 +695,7 @@ const styles = StyleSheet.create({
   },
   cardNicknamePill: {
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 5,
     borderRadius: 999,
     borderWidth: 1,
   },
@@ -620,26 +703,60 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
+  cardNumberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
   cardNumber: {
     fontSize: 19,
     fontWeight: '600',
     letterSpacing: 2.8,
+    flex: 1,
   },
-  cardCvvRow: {
+  copyIconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  copyIconBtnSm: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardDataRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
-  cardCvvLabel: {
-    fontSize: 11,
+  cardDataItem: {
+    gap: 4,
+  },
+  cardDataLabel: {
+    fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 1.0,
+    letterSpacing: 1.1,
   },
-  cardCvvValue: {
+  cardDataValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  cardDataValue: {
     fontSize: 14,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
-    letterSpacing: 0.6,
+    letterSpacing: 0.5,
+  },
+  cardDataDivider: {
+    width: 1,
+    height: 30,
+    marginHorizontal: 18,
   },
   revealPill: {
     flexDirection: 'row',

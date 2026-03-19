@@ -490,12 +490,37 @@
       color: rgba(255,255,255,0.9);
       font-weight: 700;
     }
+    .home-card-num-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 3px;
+    }
+    .home-card-copy-btn {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
     .home-card-cvv {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.46rem;
       color: rgba(255,255,255,0.4);
       margin-bottom: 7px;
     }
+    .home-card-cvv-exp {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 7px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.44rem;
+    }
+    .hcc-label { color: rgba(255,255,255,0.38); letter-spacing: 0.04em; }
+    .hcc-dots  { color: rgba(255,255,255,0.65); }
+    .hcc-divider { width: 1px; height: 9px; background: rgba(255,255,255,0.2); margin: 0 2px; }
+    .hcc-exp   { color: rgba(255,255,255,0.85); font-weight: 600; }
     .home-card-bottom {
       display: flex;
       align-items: center;
@@ -554,13 +579,19 @@
       position: relative;
       overflow: hidden;
     }
-    .detail-card-visual::after {
-      content: '';
+    .detail-card-visual::after { display: none; }
+    .dcv-brand-badge {
       position: absolute;
-      top: -30%; right: -8%;
-      width: 130px; height: 130px;
+      top: 7px; right: 10px;
+      width: 52px; height: 52px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.36rem; letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.8);
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      text-align: center;
     }
     .dcv-top {
       display: flex;
@@ -568,8 +599,7 @@
       align-items: flex-start;
       margin-bottom: 7px;
     }
-    .dcv-bank { font-size: 0.48rem; color: rgba(255,255,255,0.55); }
-    .dcv-brand { font-size: 0.48rem; letter-spacing: 0.08em; color: rgba(255,255,255,0.45); }
+    .dcv-bank { font-size: 0.48rem; color: rgba(255,255,255,0.55); max-width: 60%; }
     .dcv-chip {
       width: 22px; height: 16px;
       background: rgba(255,255,255,0.1);
@@ -584,10 +614,11 @@
     .dcv-chip-line { height: 1.5px; background: rgba(255,255,255,0.3); border-radius: 1px; }
     .dcv-number {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.6rem;
-      color: rgba(255,255,255,0.75);
-      letter-spacing: 0.1em;
+      font-size: 0.54rem;
+      color: rgba(255,255,255,0.85);
+      letter-spacing: 0.06em;
       margin-bottom: 9px;
+      font-weight: 600;
     }
     .dcv-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
     .dcv-label {
@@ -1080,15 +1111,29 @@
                   <div class="filter-pill">Type</div>
                 </div>
                 <div class="home-card-list">
-                  <!-- Card 1: UNIONPAY / Chase Bank -->
+                  <!-- Card 1: UNIONPAY / ICICI Bank -->
                   <div class="home-card" style="background:linear-gradient(135deg,#1E3A5F,#0D2347)">
                     <div class="home-card-brand">UNIONPAY</div>
-                    <div class="home-card-num">•••• •••• •••• <strong>7841</strong></div>
-                    <div class="home-card-cvv">CVV •••</div>
+                    <div class="home-card-num-row">
+                      <div class="home-card-num">••• ••• ••• <strong>3223</strong></div>
+                      <div class="home-card-copy-btn">
+                        <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </div>
+                    </div>
+                    <div class="home-card-cvv-exp">
+                      <span class="hcc-label">CVV</span>
+                      <span class="hcc-dots">•••</span>
+                      <div class="home-card-copy-btn">
+                        <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </div>
+                      <div class="hcc-divider"></div>
+                      <span class="hcc-label">EXP</span>
+                      <span class="hcc-exp">10/56</span>
+                    </div>
                     <div class="home-card-bottom">
                       <div>
-                        <div class="home-card-name">James Carter</div>
-                        <div class="home-card-bank">Chase Bank</div>
+                        <div class="home-card-name">Alex Rivera</div>
+                        <div class="home-card-bank">ICICI Bank</div>
                       </div>
                       <div class="home-card-actions">
                         <div class="reveal-pill">
@@ -1099,16 +1144,29 @@
                       </div>
                     </div>
                   </div>
-                  <!-- Card 2: MASTERCARD / Wells Fargo -->
+                  <!-- Card 2: MASTERCARD / HDFC Bank -->
                   <div class="home-card" style="background:linear-gradient(135deg,#6B4220,#3D2510)">
-                    <div class="home-card-badge">Travel Visa</div>
                     <div class="home-card-brand">MASTERCARD</div>
-                    <div class="home-card-num">•••• •••• •••• <strong>2984</strong></div>
-                    <div class="home-card-cvv">CVV •••</div>
+                    <div class="home-card-num-row">
+                      <div class="home-card-num">••• ••• ••• <strong>8812</strong></div>
+                      <div class="home-card-copy-btn">
+                        <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </div>
+                    </div>
+                    <div class="home-card-cvv-exp">
+                      <span class="hcc-label">CVV</span>
+                      <span class="hcc-dots">•••</span>
+                      <div class="home-card-copy-btn">
+                        <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </div>
+                      <div class="hcc-divider"></div>
+                      <span class="hcc-label">EXP</span>
+                      <span class="hcc-exp">07/28</span>
+                    </div>
                     <div class="home-card-bottom">
                       <div>
-                        <div class="home-card-name">Emma Wilson</div>
-                        <div class="home-card-bank">Wells Fargo</div>
+                        <div class="home-card-name">Alex Rivera</div>
+                        <div class="home-card-bank">HDFC Bank</div>
                       </div>
                       <div class="home-card-actions">
                         <div class="reveal-pill">
@@ -1379,24 +1437,24 @@
                 </div>
                 <!-- Card visual -->
                 <div class="detail-card-visual">
+                  <div class="dcv-brand-badge">UNIONPAY</div>
                   <div class="dcv-top">
-                    <span class="dcv-bank">Chase Bank</span>
-                    <span class="dcv-brand">UNIONPAY</span>
+                    <span class="dcv-bank">ICICI Bank</span>
                   </div>
                   <div class="dcv-chip">
                     <div class="dcv-chip-line"></div>
                     <div class="dcv-chip-line"></div>
                     <div class="dcv-chip-line"></div>
                   </div>
-                  <div class="dcv-number">•••• •••• •••• 7841</div>
+                  <div class="dcv-number">5436 3535 5335 3223</div>
                   <div class="dcv-bottom">
                     <div>
                       <div class="dcv-label">Card Holder</div>
-                      <div class="dcv-value">James Carter</div>
+                      <div class="dcv-value">Alex Rivera</div>
                     </div>
                     <div>
                       <div class="dcv-label">Expires</div>
-                      <div class="dcv-value">08/29</div>
+                      <div class="dcv-value">10/56</div>
                     </div>
                   </div>
                 </div>
@@ -1404,39 +1462,37 @@
                 <div class="detail-info-rows">
                   <div class="detail-info-row">
                     <span class="detail-info-label">Cardholder</span>
-                    <span class="detail-info-val">James Carter</span>
+                    <span class="detail-info-val">Alex Rivera</span>
                   </div>
                   <div class="detail-info-row">
                     <span class="detail-info-label">Card Number</span>
                     <div class="detail-info-right">
-                      <span class="detail-info-mono">•••• •••• 7841</span>
-                      <div class="reveal-pill">
-                        <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                        Reveal
+                      <span class="detail-info-mono" style="font-size:0.42rem">5436 3535 5335 3223</span>
+                      <div class="home-card-copy-btn">
+                        <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                       </div>
                     </div>
                   </div>
                   <div class="detail-info-row">
                     <span class="detail-info-label">Expiry</span>
-                    <span class="detail-info-val">08/29</span>
+                    <span class="detail-info-val">10/56</span>
                   </div>
                   <div class="detail-info-row">
                     <span class="detail-info-label">CVV</span>
                     <div class="detail-info-right">
-                      <span class="detail-info-mono">•••</span>
-                      <div class="reveal-pill">
-                        <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                        Reveal
+                      <span class="detail-info-val">456</span>
+                      <div class="home-card-copy-btn">
+                        <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                       </div>
                     </div>
                   </div>
                   <div class="detail-info-row">
                     <span class="detail-info-label">Bank</span>
-                    <span class="detail-info-val">Chase Bank</span>
+                    <span class="detail-info-val">ICICI Bank</span>
                   </div>
                   <div class="detail-info-row">
                     <span class="detail-info-label">Card Type</span>
-                    <span class="detail-info-val">Credit Card</span>
+                    <span class="detail-info-val">Debit Card</span>
                   </div>
                   <div class="detail-info-row" style="border-bottom:none">
                     <span class="detail-info-label">Card Brand</span>
@@ -1493,15 +1549,29 @@
                 </div>
                 <!-- Card list -->
                 <div class="home-card-list">
-                  <!-- Card 1: UNIONPAY / Chase Bank -->
+                  <!-- Card 1: UNIONPAY / ICICI Bank -->
                   <div class="home-card" style="background:linear-gradient(135deg,#1E3A5F,#0D2347)">
                     <div class="home-card-brand">UNIONPAY</div>
-                    <div class="home-card-num">•••• •••• •••• <strong>7841</strong></div>
-                    <div class="home-card-cvv">CVV •••</div>
+                    <div class="home-card-num-row">
+                      <div class="home-card-num">••• ••• ••• <strong>3223</strong></div>
+                      <div class="home-card-copy-btn">
+                        <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </div>
+                    </div>
+                    <div class="home-card-cvv-exp">
+                      <span class="hcc-label">CVV</span>
+                      <span class="hcc-dots">•••</span>
+                      <div class="home-card-copy-btn">
+                        <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </div>
+                      <div class="hcc-divider"></div>
+                      <span class="hcc-label">EXP</span>
+                      <span class="hcc-exp">10/56</span>
+                    </div>
                     <div class="home-card-bottom">
                       <div>
-                        <div class="home-card-name">James Carter</div>
-                        <div class="home-card-bank">Chase Bank</div>
+                        <div class="home-card-name">Alex Rivera</div>
+                        <div class="home-card-bank">ICICI Bank</div>
                       </div>
                       <div class="home-card-actions">
                         <div class="reveal-pill">
@@ -1512,16 +1582,29 @@
                       </div>
                     </div>
                   </div>
-                  <!-- Card 2: MASTERCARD / Wells Fargo -->
+                  <!-- Card 2: MASTERCARD / HDFC Bank -->
                   <div class="home-card" style="background:linear-gradient(135deg,#6B4220,#3D2510)">
-                    <div class="home-card-badge">Travel Visa</div>
                     <div class="home-card-brand">MASTERCARD</div>
-                    <div class="home-card-num">•••• •••• •••• <strong>2984</strong></div>
-                    <div class="home-card-cvv">CVV •••</div>
+                    <div class="home-card-num-row">
+                      <div class="home-card-num">••• ••• ••• <strong>8812</strong></div>
+                      <div class="home-card-copy-btn">
+                        <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </div>
+                    </div>
+                    <div class="home-card-cvv-exp">
+                      <span class="hcc-label">CVV</span>
+                      <span class="hcc-dots">•••</span>
+                      <div class="home-card-copy-btn">
+                        <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </div>
+                      <div class="hcc-divider"></div>
+                      <span class="hcc-label">EXP</span>
+                      <span class="hcc-exp">07/28</span>
+                    </div>
                     <div class="home-card-bottom">
                       <div>
-                        <div class="home-card-name">Emma Wilson</div>
-                        <div class="home-card-bank">Wells Fargo</div>
+                        <div class="home-card-name">Alex Rivera</div>
+                        <div class="home-card-bank">HDFC Bank</div>
                       </div>
                       <div class="home-card-actions">
                         <div class="reveal-pill">
