@@ -47,7 +47,7 @@ const SECURITY_POINTS = [
     icon: '🧬',
     title: 'PIN & biometric lock',
     tagline: 'Auto-locks after 30 seconds of inactivity.',
-    body: 'Your vault is locked with a PIN you choose, and optionally your fingerprint or Face ID. If you switch apps or put your phone down, the vault locks itself automatically after 30 seconds.',
+    body: 'Your vault is locked with a PIN you choose, and optionally biometrics (Face ID or fingerprint). If you switch apps or put your phone down, the vault locks itself automatically after 30 seconds.',
     expandedHeight: 80,
   },
   {

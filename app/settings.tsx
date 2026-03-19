@@ -30,7 +30,7 @@ export default function SettingsScreen() {
   const [cardCount, setCardCount] = useState(0);
   const [biometricsAvailable, setBiometricsAvailableState] = useState(false);
   const [biometricsEnabled, setBiometricsEnabledState] = useState(false);
-  const [biometricLabel, setBiometricLabel] = useState('Fingerprint');
+  const [biometricLabel, setBiometricLabel] = useState('Biometrics');
   const [updatingBiometrics, setUpdatingBiometrics] = useState(false);
   const [modal, setModal] = useState<ModalConfig | null>(null);
 
@@ -44,7 +44,7 @@ export default function SettingsScreen() {
     setCardCount(totalCards);
     setBiometricsAvailableState(available);
     setBiometricsEnabledState(enabled);
-    setBiometricLabel(available ? await getBiometricType() : 'Fingerprint');
+    setBiometricLabel(available ? await getBiometricType() : 'Biometrics');
   }, []);
 
   useFocusEffect(
@@ -56,8 +56,8 @@ export default function SettingsScreen() {
   const handleToggleBiometrics = async (value: boolean) => {
     if (!biometricsAvailable) {
       setModal({
-        title: 'Fingerprint Unavailable',
-        message: 'This device does not have fingerprint unlock set up.',
+        title: 'Biometrics Unavailable',
+        message: 'This device does not have biometrics set up.',
         buttons: [{ label: 'OK', variant: 'ghost', onPress: () => {} }],
       });
       return;
@@ -134,7 +134,7 @@ export default function SettingsScreen() {
                 <Text style={styles.rowTitle}>{biometricLabel}</Text>
                 <Text style={styles.rowSubtitle}>
                   {biometricsAvailable
-                    ? 'Use your fingerprint for faster unlock.'
+                    ? 'Use biometrics for faster unlock.'
                     : 'Not available on this device yet.'}
                 </Text>
               </View>

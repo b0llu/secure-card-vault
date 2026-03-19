@@ -64,7 +64,7 @@ Card Vault may request access to your device camera to allow you to scan and cap
 
 ## 4. Biometric Permission
 
-Card Vault may request access to fingerprint authentication to provide a faster unlock option.
+Card Vault may request access to biometric authentication (Face ID or fingerprint) to provide a faster unlock option.
 
 - Biometric data is handled entirely by the operating system (iOS LocalAuthentication / Android BiometricPrompt).
 - Card Vault **never has access to raw biometric data** (fingerprint images, etc.). It only receives a yes/no authentication result from the OS.

@@ -81,13 +81,13 @@ export default function SetupPinScreen() {
             <Hero
               icon="shield"
               eyebrow="Faster unlock"
-              title="Enable Fingerprint?"
-              subtitle="Use your fingerprint to open the vault without typing your PIN each time."
+              title="Enable Biometrics?"
+              subtitle="Use biometrics to open the vault without typing your PIN each time."
             />
 
             <View style={styles.actions}>
               <ThemedButton
-                title="Enable Fingerprint"
+                title="Enable Biometrics"
                 onPress={() => handleEnableBiometrics(true)}
                 style={styles.button}
                 icon={

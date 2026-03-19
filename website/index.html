@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Card Vault — Secure, offline-only card storage for Android. AES-256 encryption, no accounts, no internet, no compromises." />
+  <title>Card Vault — Secure Card Storage</title>
+  <link rel="icon" href="../assets/favicon.png" type="image/png" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Background texture ─────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle at 20% 20%, rgba(201,165,82,0.04) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(201,165,82,0.03) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Hero ───────────────────────────────────────────────── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 9rem 0 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #hero::before {
+      content: '';
+      position: absolute;
+      top: 10%; right: -5%;
+      width: 55%;
+      height: 80%;
+      background: radial-gradient(ellipse at center, rgba(201,165,82,0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+
+    .hero-text h1 {
+      font-size: clamp(3rem, 6vw, 5.5rem);
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+
+    .hero-text h1 em {
+      display: block;
+      color: var(--gold);
+      font-style: italic;
+      font-weight: 300;
+    }
+
+    .hero-desc {
+      color: var(--text-2);
+      font-size: 1.05rem;
+      line-height: 1.8;
+      max-width: 46ch;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      align-items: flex-start;
+    }
+
+    .store-btns {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    .app-store-btn {
+      cursor: default;
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    .hero-trust {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .hero-trust-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      color: var(--text-3);
+    }
+
+    .hero-trust-item svg {
+      width: 12px; height: 12px;
+      color: var(--green);
+      flex-shrink: 0;
+    }
+
+    /* ── Visual column ──────────────────────────────────────── */
+    .hero-visual {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 600px;
+    }
+
+    .hero-phone-wrap {
+      position: relative;
+      z-index: 2;
+      animation: float-phone 6s ease-in-out infinite;
+    }
+
+    @keyframes float-phone {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-14px); }
+    }
+
+    .floating-card {
+      position: absolute;
+      z-index: 1;
+    }
+
+    .floating-card-1 {
+      top: 5%;
+      left: -8%;
+      transform: rotate(-15deg);
+      animation: float-c1 7s ease-in-out infinite;
+    }
+
+    .floating-card-2 {
+      bottom: 10%;
+      right: -5%;
+      transform: rotate(10deg);
+      animation: float-c2 8s ease-in-out infinite;
+    }
+
+    @keyframes float-c1 {
+      0%, 100% { transform: rotate(-15deg) translateY(0); }
+      50% { transform: rotate(-15deg) translateY(-10px); }
+    }
+
+    @keyframes float-c2 {
+      0%, 100% { transform: rotate(10deg) translateY(0); }
+      50% { transform: rotate(10deg) translateY(-12px); }
+    }
+
+    .card-mock.blue { background: linear-gradient(135deg, #1E3A5F 0%, #0D1F3C 100%); }
+    .card-mock.purple { background: linear-gradient(135deg, #2D1F4E 0%, #170E2B 100%); }
+    .card-mock.slate { background: linear-gradient(135deg, #1A2428 0%, #0C1214 100%); }
+    .card-mock.teal { background: linear-gradient(135deg, #1A2E28 0%, #0C1A16 100%); }
+    .card-mock.amber { background: linear-gradient(135deg, #2E2010 0%, #1A1008 100%); }
+
+    /* Glow rings */
+    .glow-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(201,165,82,0.08);
+      pointer-events: none;
+    }
+
+    .glow-ring-1 { width: 420px; height: 420px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .glow-ring-2 { width: 580px; height: 580px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: ring-pulse 4s ease-in-out infinite; }
+    .glow-ring-3 { width: 740px; height: 740px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: ring-pulse 4s ease-in-out infinite 1s; }
+
+    @keyframes ring-pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 0.2; }
+    }
+
+    /* ── Features ───────────────────────────────────────────── */
+    #features { background: var(--bg); }
+
+    .features-header { margin-bottom: 4rem; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5px;
+      background: var(--border);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+    }
+
+    .feature-card {
+      background: var(--bg);
+      padding: 2.25rem 2rem;
+      transition: background 0.3s;
+      position: relative;
+    }
+
+    .feature-card:hover { background: var(--surface); }
+
+    .feature-icon {
+      width: 44px; height: 44px;
+      border-radius: 11px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.25rem;
+      transition: border-color 0.3s;
+    }
+
+    .feature-card:hover .feature-icon {
+      border-color: var(--gold);
+    }
+
+    .feature-icon svg { width: 20px; height: 20px; color: var(--gold); }
+
+    .feature-card h3 {
+      font-family: 'Sora', sans-serif;
+      font-size: 0.98rem;
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+      color: var(--text);
+    }
+
+    .feature-card p {
+      font-size: 0.83rem;
+      color: var(--text-2);
+      line-height: 1.7;
+    }
+
+    /* ── Security section ───────────────────────────────────── */
+    #security {
+      background: var(--surface);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #security::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 100% 50%, rgba(201,165,82,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .security-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+
+    .security-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+    }
+
+    .stat-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      border-radius: var(--r);
+      padding: 1.5rem;
+    }
+
+    .stat-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.8rem;
+      font-weight: 600;
+      color: var(--gold);
+      line-height: 1;
+      margin-bottom: 0.35rem;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-2);
+      line-height: 1.4;
+    }
+
+    .security-features { display: flex; flex-direction: column; gap: 1rem; }
+
+    .sec-feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.25rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      transition: border-color 0.3s;
+    }
+
+    .sec-feature:hover { border-color: var(--border-2); }
+
+    .sec-feature-icon {
+      width: 36px; height: 36px; flex-shrink: 0;
+      border-radius: 9px;
+      background: var(--green-dim);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .sec-feature-icon svg { width: 16px; height: 16px; color: var(--green); }
+
+    .sec-feature-text h4 {
+      font-family: 'Sora', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+      color: var(--text);
+    }
+
+    .sec-feature-text p {
+      font-size: 0.78rem;
+      color: var(--text-2);
+      line-height: 1.6;
+    }
+
+    /* ── How it works ───────────────────────────────────────── */
+    #how { background: var(--bg); }
+
+    .how-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2.5rem;
+      margin-top: 4rem;
+      position: relative;
+    }
+
+    .how-steps::before {
+      content: '';
+      position: absolute;
+      top: 32px; left: calc(16.67% + 1rem); right: calc(16.67% + 1rem);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-2), transparent);
+    }
+
+    .how-step { text-align: center; }
+
+    .how-step-num {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .how-step-num span {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--gold);
+    }
+
+    .how-step h3 {
+      font-family: 'Sora', sans-serif;
+      font-size: 0.98rem;
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+      color: var(--text);
+    }
+
+    .how-step p { font-size: 0.83rem; color: var(--text-2); line-height: 1.7; }
+
+    /* ── Screenshots ────────────────────────────────────────── */
+    #screenshots { background: var(--bg-2); overflow: hidden; }
+
+    .screenshots-header { text-align: center; margin-bottom: 5rem; }
+
+    .phones-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 2.5rem;
+      position: relative;
+    }
+
+    .phone-scene {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .phone-scene.center { transform: scale(1.06) translateY(-12px); z-index: 2; }
+
+    .phone-caption {
+      text-align: center;
+    }
+
+    .phone-caption h4 {
+      font-family: 'Sora', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: var(--text);
+    }
+
+    .phone-caption p { font-size: 0.75rem; color: var(--text-2); }
+
+    /* ── Screenshot screens ─────────────────────────────────── */
+
+    .back-header {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px 2px;
+    }
+    .back-arrow {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.65);
+      line-height: 1;
+    }
+
+    /* Filter pills */
+    .filter-pills {
+      display: flex;
+      gap: 5px;
+      padding: 4px 12px 8px;
+      overflow: hidden;
+    }
+    .filter-pill {
+      font-size: 0.47rem;
+      padding: 3px 9px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.13);
+      color: rgba(255,255,255,0.5);
+      white-space: nowrap;
+      font-family: 'Sora', sans-serif;
+    }
+    .filter-pill.active {
+      background: rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.9);
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    /* Home card entries */
+    .home-card-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      padding: 0 12px;
+      overflow: hidden;
+    }
+    .home-card {
+      border-radius: 14px;
+      padding: 10px 12px 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .home-card-brand {
+      font-size: 0.46rem;
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      font-family: 'Sora', sans-serif;
+    }
+    .home-card-badge {
+      position: absolute;
+      top: 8px; right: 8px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 20px;
+      padding: 2px 7px;
+      font-size: 0.42rem;
+      color: rgba(255,255,255,0.85);
+      font-family: 'Sora', sans-serif;
+    }
+    .home-card-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem;
+      color: rgba(255,255,255,0.65);
+      letter-spacing: 0.06em;
+      margin-bottom: 2px;
+    }
+    .home-card-num strong {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.9);
+      font-weight: 700;
+    }
+    .home-card-cvv {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.46rem;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 7px;
+    }
+    .home-card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .home-card-name {
+      font-size: 0.52rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      font-family: 'Sora', sans-serif;
+    }
+    .home-card-bank {
+      font-size: 0.42rem;
+      color: rgba(255,255,255,0.42);
+      font-family: 'Sora', sans-serif;
+    }
+    .home-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .reveal-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      font-size: 0.42rem;
+      color: rgba(255,255,255,0.65);
+      background: rgba(255,255,255,0.04);
+      font-family: 'Sora', sans-serif;
+    }
+    .home-chevron {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.28);
+    }
+    .add-card-btn {
+      margin: 8px 12px 20px;
+      padding: 10px;
+      background: rgba(255,255,255,0.11);
+      border-radius: 14px;
+      text-align: center;
+      font-size: 0.58rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.82);
+      font-family: 'Sora', sans-serif;
+    }
+
+    /* ── Card Detail Screen ──────────────────────────────────── */
+    .detail-card-visual {
+      margin: 2px 12px 7px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #1E3A5F, #0D1F3C);
+      padding: 11px 13px;
+      position: relative;
+      overflow: hidden;
+    }
+    .detail-card-visual::after {
+      content: '';
+      position: absolute;
+      top: -30%; right: -8%;
+      width: 130px; height: 130px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+    }
+    .dcv-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 7px;
+    }
+    .dcv-bank { font-size: 0.48rem; color: rgba(255,255,255,0.55); }
+    .dcv-brand { font-size: 0.48rem; letter-spacing: 0.08em; color: rgba(255,255,255,0.45); }
+    .dcv-chip {
+      width: 22px; height: 16px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      margin-bottom: 7px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      padding: 3px 4px;
+    }
+    .dcv-chip-line { height: 1.5px; background: rgba(255,255,255,0.3); border-radius: 1px; }
+    .dcv-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.75);
+      letter-spacing: 0.1em;
+      margin-bottom: 9px;
+    }
+    .dcv-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+    .dcv-label {
+      font-size: 0.37rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 1px;
+    }
+    .dcv-value { font-size: 0.5rem; font-weight: 600; color: rgba(255,255,255,0.85); }
+
+    .detail-info-rows {
+      flex: 1;
+      overflow: hidden;
+      padding: 0 13px;
+      display: flex;
+      flex-direction: column;
+    }
+    .detail-info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .detail-info-label { font-size: 0.46rem; color: rgba(255,255,255,0.33); }
+    .detail-info-val { font-size: 0.5rem; font-weight: 600; color: rgba(255,255,255,0.8); }
+    .detail-info-right { display: flex; align-items: center; gap: 5px; }
+    .detail-info-mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.46rem;
+      color: rgba(255,255,255,0.48);
+    }
+    .detail-actions {
+      display: flex;
+      gap: 8px;
+      padding: 6px 12px 18px;
+    }
+    .detail-btn-edit {
+      flex: 1;
+      padding: 8px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 12px;
+      text-align: center;
+      font-size: 0.5rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.72);
+      font-family: 'Sora', sans-serif;
+    }
+    .detail-btn-delete {
+      flex: 1;
+      padding: 8px;
+      background: rgba(180,40,40,0.18);
+      border-radius: 12px;
+      text-align: center;
+      font-size: 0.5rem;
+      font-weight: 600;
+      color: rgba(220,80,80,0.9);
+      font-family: 'Sora', sans-serif;
+    }
+
+    /* ── Security & Privacy Screen ────────────────────────────── */
+    .sec-screen-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6px 14px 8px;
+      text-align: center;
+    }
+    .sec-hero-circle {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 7px;
+    }
+    .sec-hero-eyebrow {
+      font-size: 0.38rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.38);
+      margin-bottom: 3px;
+      font-family: 'Sora', sans-serif;
+    }
+    .sec-hero-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.92);
+      line-height: 1.25;
+      margin-bottom: 4px;
+      font-family: 'Sora', sans-serif;
+    }
+    .sec-hero-sub {
+      font-size: 0.4rem;
+      color: rgba(255,255,255,0.38);
+      line-height: 1.5;
+      font-family: 'Sora', sans-serif;
+    }
+    .sec-acc-list {
+      flex: 1;
+      overflow: hidden;
+      padding: 0 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .sec-acc-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 9px;
+      padding: 6px 8px;
+    }
+    .sec-acc-left { display: flex; align-items: center; gap: 7px; }
+    .sec-acc-emoji { font-size: 0.68rem; width: 18px; text-align: center; }
+    .sec-acc-title {
+      font-size: 0.47rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 1px;
+      font-family: 'Sora', sans-serif;
+    }
+    .sec-acc-sub {
+      font-size: 0.37rem;
+      color: rgba(255,255,255,0.33);
+      font-family: 'Sora', sans-serif;
+    }
+    .sec-acc-chevron { font-size: 0.55rem; color: rgba(255,255,255,0.2); }
+
+    /* ── Privacy Promise ────────────────────────────────────── */
+    #privacy-promise {
+      background: var(--bg);
+      text-align: center;
+    }
+
+    .promise-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-top: 3.5rem;
+    }
+
+    .promise-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.75rem 1.25rem;
+      transition: border-color 0.3s;
+    }
+
+    .promise-item:hover { border-color: var(--border-2); }
+
+    .promise-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: var(--gold-glow);
+      border: 1px solid rgba(201,165,82,0.2);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+    }
+
+    .promise-icon svg { width: 18px; height: 18px; color: var(--gold); }
+    .promise-item h4 {
+      font-family: 'Sora', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .promise-item p { font-size: 0.78rem; color: var(--text-2); line-height: 1.6; }
+
+    /* ── Download CTA ───────────────────────────────────────── */
+    #download {
+      background: var(--surface);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #download::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(201,165,82,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .download-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+
+    #download h2 {
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      margin-bottom: 1rem;
+    }
+
+    #download .sub {
+      color: var(--text-2);
+      margin-bottom: 2.5rem;
+      font-size: 1rem;
+    }
+
+    .download-cta-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .download-note {
+      font-size: 0.75rem;
+      color: var(--text-3);
+    }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .hero-grid { grid-template-columns: 1fr; gap: 4rem; }
+      .hero-visual { min-height: 480px; }
+      .floating-card-1 { left: 2%; }
+      .floating-card-2 { right: 2%; }
+      .security-grid { grid-template-columns: 1fr; gap: 3rem; }
+      .promise-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .how-steps { grid-template-columns: 1fr; }
+      .how-steps::before { display: none; }
+      .phones-row { gap: 1.25rem; }
+      .phone { width: 200px; height: 415px; }
+      .phone-scene:first-child, .phone-scene:last-child { display: none; }
+      .phone-scene.center { transform: none; }
+      .promise-grid { grid-template-columns: 1fr 1fr; }
+      .floating-card-1 { display: none; }
+      .floating-card-2 { display: none; }
+    }
+
+    @media (max-width: 500px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .promise-grid { grid-template-columns: 1fr; }
+      .security-stats { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* Mobile nav open */
+    .nav-links.mobile-open {
+      display: flex !important;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: rgba(7,7,7,0.98);
+      flex-direction: column;
+      padding: 5rem 2rem 2rem;
+      gap: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────────────────────── -->
+<nav aria-label="Main navigation">
+  <div class="container">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" aria-label="Card Vault Home">
+        <div class="nav-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <span class="nav-logo-text">Card Vault</span>
+      </a>
+
+      <ul class="nav-links" role="list">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#security">Security</a></li>
+        <li><a href="#screenshots">Screenshots</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="#download" class="nav-cta">Get the App</a></li>
+      </ul>
+
+      <button class="nav-mobile-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<section id="hero">
+  <div class="container">
+    <div class="hero-grid">
+
+      <!-- Text -->
+      <div class="hero-text">
+        <h1 class="anim">
+          Your Cards.
+          <em>Locked Tight.</em>
+        </h1>
+
+        <p class="hero-desc anim d2">
+          Card Vault is a secure, completely offline card manager.
+          Store all your credit and debit card details with
+          military-grade AES-256 encryption — no accounts, no cloud,
+          no compromises.
+        </p>
+
+        <div class="hero-actions anim d3">
+          <div class="store-btns">
+            <a href="#" class="play-btn" aria-label="Download on Google Play">
+              <div class="play-btn-icon">
+                <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l2.6 1.5 247.4-247.4v-5.8L47 0zm325.8 328.3l-82.4-47.6-60.1 60.1 82.4 47.5 60.1-60z" fill="#EA4335"/>
+                  <path d="M47 0C34 6.8 25.3 19.2 25.3 35.3L282.4 292.6l60.1-60.1L72.7 1.5 47 0z" fill="#FBBC04"/>
+                  <path d="M25.3 476.7c0 16.1 8.7 28.5 21.7 35.3l247.4-247.4-60.1-60.1-209.3 272.2H25.3z" fill="#34A853"/>
+                  <path d="M373.1 176.2L104.6 13l-57.6 33.2 269.8 155.7-60.1 60.1 117.2 67.6V206l-.8-.9v-28.9z" fill="#4285F4"/>
+                </svg>
+              </div>
+              <div class="play-btn-text">
+                <span class="play-btn-small">Download on</span>
+                <span class="play-btn-large">Google Play</span>
+              </div>
+            </a>
+
+            <div class="play-btn app-store-btn" aria-label="App Store — Coming Soon">
+              <div class="play-btn-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" style="color:rgba(255,255,255,0.4);width:26px;height:26px">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.14-2.24 1.31-2.22 3.91.03 3.12 2.73 4.16 2.76 4.17l-.09.24zM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                </svg>
+              </div>
+              <div class="play-btn-text">
+                <span class="play-btn-small" style="display:flex;align-items:center;gap:0.4rem">
+                  Coming Soon
+                </span>
+                <span class="play-btn-large" style="color:rgba(255,255,255,0.4)">App Store</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-trust">
+            <div class="hero-trust-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              AES-256 Encryption
+            </div>
+            <div class="hero-trust-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Zero Cloud, Zero Accounts
+            </div>
+            <div class="hero-trust-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              100% Free
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visual -->
+      <div class="hero-visual anim d2">
+        <!-- Decorative rings -->
+        <div class="glow-ring glow-ring-1"></div>
+        <div class="glow-ring glow-ring-2"></div>
+        <div class="glow-ring glow-ring-3"></div>
+
+        <!-- Floating Card 1 (top-left) -->
+        <div class="floating-card floating-card-1">
+          <div class="card-mock blue" style="width:240px;height:148px;">
+            <div class="card-chip">
+              <div class="card-chip-lines"><div class="card-chip-line"></div><div class="card-chip-line"></div><div class="card-chip-line"></div></div>
+            </div>
+            <div class="card-number-mock">•••• •••• •••• 4242</div>
+            <div class="card-bottom-mock">
+              <div class="card-bottom-left">
+                <div class="card-label-mock">Card Holder</div>
+                <div class="card-name-mock">Alex Johnson</div>
+              </div>
+              <div class="card-expiry-mock">12/27</div>
+            </div>
+            <div class="card-brand-mock">VISA</div>
+          </div>
+        </div>
+
+        <!-- Phone -->
+        <div class="hero-phone-wrap">
+          <div class="phone">
+            <div class="phone-notch">
+              <div class="phone-camera"></div>
+            </div>
+            <div class="phone-screen">
+              <div class="app-screen">
+                <div class="app-status-bar">
+                  <span>9:41</span>
+                  <div class="status-icons">
+                    <div class="status-bar-icon" style="width:14px;height:7px;border-radius:1px;background:rgba(255,255,255,0.5)"></div>
+                    <div style="width:4px;height:7px;border-radius:1px;background:rgba(255,255,255,0.5)"></div>
+                  </div>
+                </div>
+                <div class="app-header">
+                  <span class="app-header-title">Card Vault</span>
+                  <div style="display:flex;gap:5px">
+                    <div class="app-header-icon">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <div class="app-header-icon">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </div>
+                  </div>
+                </div>
+                <div class="filter-pills">
+                  <div class="filter-pill active">None</div>
+                  <div class="filter-pill">Brand</div>
+                  <div class="filter-pill">Bank</div>
+                  <div class="filter-pill">Type</div>
+                </div>
+                <div class="home-card-list">
+                  <!-- Card 1: UNIONPAY / Chase Bank -->
+                  <div class="home-card" style="background:linear-gradient(135deg,#1E3A5F,#0D2347)">
+                    <div class="home-card-brand">UNIONPAY</div>
+                    <div class="home-card-num">•••• •••• •••• <strong>7841</strong></div>
+                    <div class="home-card-cvv">CVV •••</div>
+                    <div class="home-card-bottom">
+                      <div>
+                        <div class="home-card-name">James Carter</div>
+                        <div class="home-card-bank">Chase Bank</div>
+                      </div>
+                      <div class="home-card-actions">
+                        <div class="reveal-pill">
+                          <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                          Reveal
+                        </div>
+                        <span class="home-chevron">›</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Card 2: MASTERCARD / Wells Fargo -->
+                  <div class="home-card" style="background:linear-gradient(135deg,#6B4220,#3D2510)">
+                    <div class="home-card-badge">Travel Visa</div>
+                    <div class="home-card-brand">MASTERCARD</div>
+                    <div class="home-card-num">•••• •••• •••• <strong>2984</strong></div>
+                    <div class="home-card-cvv">CVV •••</div>
+                    <div class="home-card-bottom">
+                      <div>
+                        <div class="home-card-name">Emma Wilson</div>
+                        <div class="home-card-bank">Wells Fargo</div>
+                      </div>
+                      <div class="home-card-actions">
+                        <div class="reveal-pill">
+                          <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                          Reveal
+                        </div>
+                        <span class="home-chevron">›</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="add-card-btn">+ Add Card</div>
+              </div>
+            </div>
+            <div class="phone-home-bar"></div>
+          </div>
+        </div>
+
+        <!-- Floating Card 2 (bottom-right) -->
+        <div class="floating-card floating-card-2">
+          <div class="card-mock purple" style="width:220px;height:136px;">
+            <div class="card-chip">
+              <div class="card-chip-lines"><div class="card-chip-line"></div><div class="card-chip-line"></div></div>
+            </div>
+            <div class="card-number-mock" style="font-size:0.85rem;">•••• •••• •••• 7891</div>
+            <div class="card-bottom-mock">
+              <div class="card-bottom-left">
+                <div class="card-label-mock">Card Holder</div>
+                <div class="card-name-mock">Sarah Chen</div>
+              </div>
+              <div class="card-expiry-mock">08/26</div>
+            </div>
+            <div class="card-brand-mock">MC</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ───────────────────────────────────────────────── -->
+<section id="features">
+  <div class="container">
+    <div class="features-header anim">
+      <span class="section-label">What you get</span>
+      <h2 class="section-headline">Everything your cards need.<br><span class="italic text-gold">Nothing they don't.</span></h2>
+    </div>
+
+    <div class="features-grid">
+
+      <!-- AES-256 -->
+      <div class="feature-card anim">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <h3>AES-256 Encryption</h3>
+        <p>Every card is encrypted with AES-256-CBC before touching storage. The key lives in your device's Secure Enclave — unreachable by any app or person.</p>
+      </div>
+
+      <!-- Offline -->
+      <div class="feature-card anim d1">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
+          </svg>
+        </div>
+        <h3>100% Offline</h3>
+        <p>No internet connection required — ever. Card Vault makes zero network requests. There are no servers, no syncing, and no back doors.</p>
+      </div>
+
+      <!-- Card Scanner -->
+      <div class="feature-card anim d2">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 7 23 1 17 1"/><line x1="16" y1="8" x2="23" y2="1"/><polyline points="1 17 1 23 7 23"/><line x1="8" y1="16" x2="1" y2="23"/><rect x="5" y="5" width="14" height="14" rx="2"/>
+          </svg>
+        </div>
+        <h3>Card Scanner</h3>
+        <p>Point your camera at any card and let on-device OCR extract the number, name, expiry, and more — instantly, locally, with nothing sent anywhere.</p>
+      </div>
+
+      <!-- Biometrics -->
+      <div class="feature-card anim d3">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </div>
+        <h3>Biometric Unlock</h3>
+        <p>Use Face ID or fingerprint for instant vault access. Biometric data is handled entirely by your OS — Card Vault never sees it.</p>
+      </div>
+
+      <!-- Backup -->
+      <div class="feature-card anim d4">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="21 15 21 19 3 19 3 15"/><polyline points="17 11 12 6 7 11"/><line x1="12" y1="6" x2="12" y2="18"/>
+          </svg>
+        </div>
+        <h3>Encrypted Backup</h3>
+        <p>Export your entire vault to a password-protected <span class="mono">.securevault</span> file encrypted with AES-256. Restore it on any device, any time.</p>
+      </div>
+
+      <!-- Screenshot Protection -->
+      <div class="feature-card anim d5">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>
+          </svg>
+        </div>
+        <h3>Screenshot Protection</h3>
+        <p>All screenshots are blocked at the OS level — on both Android and iOS. Your vault never appears in screen recordings or app previews.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Security ────────────────────────────────────────────────── -->
+<section id="security">
+  <div class="container">
+    <div class="security-grid">
+
+      <!-- Left: stats + copy -->
+      <div>
+        <span class="section-label anim">Security Architecture</span>
+        <h2 class="anim d1">Built like a vault.<br><span class="italic text-gold">Because it is one.</span></h2>
+        <p class="section-subtext anim d2" style="margin-top:1rem;">
+          Every design decision was made with one question: <em>"What's the worst that can happen?"</em>
+          The answer shaped everything — from how keys are generated to why there's no recovery mechanism.
+        </p>
+
+        <div class="security-stats">
+          <div class="stat-card anim d2">
+            <div class="stat-number mono" data-count="256" data-suffix="-bit">0-bit</div>
+            <div class="stat-label">AES encryption<br>key length</div>
+          </div>
+          <div class="stat-card anim d3">
+            <div class="stat-number mono" data-count="0" data-suffix=" servers">0</div>
+            <div class="stat-label">External servers<br>or cloud accounts</div>
+          </div>
+          <div class="stat-card anim d4">
+            <div class="stat-number mono" data-count="20" data-suffix="s">0s</div>
+            <div class="stat-label">Clipboard<br>auto-clear timer</div>
+          </div>
+          <div class="stat-card anim d5">
+            <div class="stat-number mono" data-count="30" data-suffix="s">0s</div>
+            <div class="stat-label">Auto-lock after<br>inactivity</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: feature list -->
+      <div class="security-features">
+        <div class="sec-feature anim d1">
+          <div class="sec-feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div class="sec-feature-text">
+            <h4>Hardware-Backed Key Storage</h4>
+            <p>Encryption keys are stored in your device's Secure Enclave (iOS) or Android Keystore — a hardware-isolated zone no app or attacker can extract keys from.</p>
+          </div>
+        </div>
+
+        <div class="sec-feature anim d2">
+          <div class="sec-feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <div class="sec-feature-text">
+            <h4>PBKDF2 PIN Hashing</h4>
+            <p>Your PIN is never stored. It's hashed with PBKDF2-SHA256 (10,000 iterations) and compared on unlock. Brute-force attacks face exponential lockout delays.</p>
+          </div>
+        </div>
+
+        <div class="sec-feature anim d3">
+          <div class="sec-feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <div class="sec-feature-text">
+            <h4>Zero Network Architecture</h4>
+            <p>Card Vault requests no network permissions. It cannot send data anywhere — not to us, not to third parties. Your firewall will never see it call home.</p>
+          </div>
+        </div>
+
+        <div class="sec-feature anim d4">
+          <div class="sec-feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/><line x1="8" y1="1" x2="16" y2="1"/>
+            </svg>
+          </div>
+          <div class="sec-feature-text">
+            <h4>Fresh IV Per Encryption</h4>
+            <p>A cryptographically random 128-bit IV is generated for every single encryption operation, preventing pattern analysis even if the same data is stored twice.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ────────────────────────────────────────────── -->
+<section id="how">
+  <div class="container">
+    <div class="text-center anim">
+      <span class="section-label">Simple by design</span>
+      <h2>Three steps to a<br><span class="italic text-gold">fully secured vault</span></h2>
+    </div>
+
+    <div class="how-steps">
+      <div class="how-step anim d1">
+        <div class="how-step-num"><span>01</span></div>
+        <h3>Add Your Cards</h3>
+        <p>Scan your card with the camera and let OCR do the work, or type details manually. Choose a custom color, nickname, and bank for easy identification.</p>
+      </div>
+      <div class="how-step anim d2">
+        <div class="how-step-num"><span>02</span></div>
+        <h3>Locked Automatically</h3>
+        <p>Every card is encrypted with AES-256 the moment you save it. The vault locks itself after 30 seconds of inactivity. Screenshots are blocked. Clipboard clears itself.</p>
+      </div>
+      <div class="how-step anim d3">
+        <div class="how-step-num"><span>03</span></div>
+        <h3>Access Instantly</h3>
+        <p>Unlock with biometrics (Face ID or fingerprint) or PIN. Copy card numbers or CVV to the clipboard — it auto-clears in 20 seconds. Your data, your control.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Screenshots ─────────────────────────────────────────────── -->
+<section id="screenshots">
+  <div class="container">
+    <div class="screenshots-header anim">
+      <span class="section-label">See it in action</span>
+      <h2>Crafted with care.<br><span class="italic text-gold">Every pixel, private.</span></h2>
+    </div>
+
+    <div class="phones-row">
+
+      <!-- Phone 1 — Card Detail -->
+      <div class="phone-scene anim d1">
+        <div class="phone-wrap">
+          <div class="phone">
+            <div class="phone-notch"><div class="phone-camera"></div></div>
+            <div class="phone-screen">
+              <div class="app-screen">
+                <div class="app-status-bar">
+                  <span>9:41</span>
+                  <div class="status-icons">
+                    <div style="width:14px;height:7px;border-radius:1px;background:rgba(255,255,255,0.5)"></div>
+                  </div>
+                </div>
+                <!-- Header with back arrow -->
+                <div class="back-header">
+                  <span class="back-arrow">←</span>
+                  <span class="app-header-title">Card Details</span>
+                </div>
+                <!-- Card visual -->
+                <div class="detail-card-visual">
+                  <div class="dcv-top">
+                    <span class="dcv-bank">Chase Bank</span>
+                    <span class="dcv-brand">UNIONPAY</span>
+                  </div>
+                  <div class="dcv-chip">
+                    <div class="dcv-chip-line"></div>
+                    <div class="dcv-chip-line"></div>
+                    <div class="dcv-chip-line"></div>
+                  </div>
+                  <div class="dcv-number">•••• •••• •••• 7841</div>
+                  <div class="dcv-bottom">
+                    <div>
+                      <div class="dcv-label">Card Holder</div>
+                      <div class="dcv-value">James Carter</div>
+                    </div>
+                    <div>
+                      <div class="dcv-label">Expires</div>
+                      <div class="dcv-value">08/29</div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Detail rows -->
+                <div class="detail-info-rows">
+                  <div class="detail-info-row">
+                    <span class="detail-info-label">Cardholder</span>
+                    <span class="detail-info-val">James Carter</span>
+                  </div>
+                  <div class="detail-info-row">
+                    <span class="detail-info-label">Card Number</span>
+                    <div class="detail-info-right">
+                      <span class="detail-info-mono">•••• •••• 7841</span>
+                      <div class="reveal-pill">
+                        <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Reveal
+                      </div>
+                    </div>
+                  </div>
+                  <div class="detail-info-row">
+                    <span class="detail-info-label">Expiry</span>
+                    <span class="detail-info-val">08/29</span>
+                  </div>
+                  <div class="detail-info-row">
+                    <span class="detail-info-label">CVV</span>
+                    <div class="detail-info-right">
+                      <span class="detail-info-mono">•••</span>
+                      <div class="reveal-pill">
+                        <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Reveal
+                      </div>
+                    </div>
+                  </div>
+                  <div class="detail-info-row">
+                    <span class="detail-info-label">Bank</span>
+                    <span class="detail-info-val">Chase Bank</span>
+                  </div>
+                  <div class="detail-info-row">
+                    <span class="detail-info-label">Card Type</span>
+                    <span class="detail-info-val">Credit Card</span>
+                  </div>
+                  <div class="detail-info-row" style="border-bottom:none">
+                    <span class="detail-info-label">Card Brand</span>
+                    <span class="detail-info-val">UNIONPAY</span>
+                  </div>
+                </div>
+                <!-- Edit + Delete -->
+                <div class="detail-actions">
+                  <div class="detail-btn-edit">✏ Edit</div>
+                  <div class="detail-btn-delete">🗑 Delete</div>
+                </div>
+              </div>
+            </div>
+            <div class="phone-home-bar"></div>
+          </div>
+        </div>
+        <div class="phone-caption">
+          <h4>Card Details</h4>
+          <p>Tap to reveal. Copy to clipboard.<br>Auto-clears in 20 seconds.</p>
+        </div>
+      </div>
+
+      <!-- Phone 2 — Home (CENTER) -->
+      <div class="phone-scene center anim d2">
+        <div class="phone-wrap">
+          <div class="phone">
+            <div class="phone-notch"><div class="phone-camera"></div></div>
+            <div class="phone-screen">
+              <div class="app-screen">
+                <div class="app-status-bar">
+                  <span>9:41</span>
+                  <div class="status-icons">
+                    <div style="width:14px;height:7px;border-radius:1px;background:rgba(255,255,255,0.5)"></div>
+                  </div>
+                </div>
+                <!-- Header -->
+                <div class="app-header">
+                  <span class="app-header-title">Card Vault</span>
+                  <div style="display:flex;gap:5px">
+                    <div class="app-header-icon">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <div class="app-header-icon">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </div>
+                  </div>
+                </div>
+                <!-- Filter pills -->
+                <div class="filter-pills">
+                  <div class="filter-pill active">None</div>
+                  <div class="filter-pill">Brand</div>
+                  <div class="filter-pill">Bank</div>
+                  <div class="filter-pill">Type</div>
+                </div>
+                <!-- Card list -->
+                <div class="home-card-list">
+                  <!-- Card 1: UNIONPAY / Chase Bank -->
+                  <div class="home-card" style="background:linear-gradient(135deg,#1E3A5F,#0D2347)">
+                    <div class="home-card-brand">UNIONPAY</div>
+                    <div class="home-card-num">•••• •••• •••• <strong>7841</strong></div>
+                    <div class="home-card-cvv">CVV •••</div>
+                    <div class="home-card-bottom">
+                      <div>
+                        <div class="home-card-name">James Carter</div>
+                        <div class="home-card-bank">Chase Bank</div>
+                      </div>
+                      <div class="home-card-actions">
+                        <div class="reveal-pill">
+                          <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                          Reveal
+                        </div>
+                        <span class="home-chevron">›</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Card 2: MASTERCARD / Wells Fargo -->
+                  <div class="home-card" style="background:linear-gradient(135deg,#6B4220,#3D2510)">
+                    <div class="home-card-badge">Travel Visa</div>
+                    <div class="home-card-brand">MASTERCARD</div>
+                    <div class="home-card-num">•••• •••• •••• <strong>2984</strong></div>
+                    <div class="home-card-cvv">CVV •••</div>
+                    <div class="home-card-bottom">
+                      <div>
+                        <div class="home-card-name">Emma Wilson</div>
+                        <div class="home-card-bank">Wells Fargo</div>
+                      </div>
+                      <div class="home-card-actions">
+                        <div class="reveal-pill">
+                          <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                          Reveal
+                        </div>
+                        <span class="home-chevron">›</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Add Card button -->
+                <div class="add-card-btn">+ Add Card</div>
+              </div>
+            </div>
+            <div class="phone-home-bar"></div>
+          </div>
+        </div>
+        <div class="phone-caption">
+          <h4>Your Vault</h4>
+          <p>All cards. Grouped, searchable,<br>and always encrypted.</p>
+        </div>
+      </div>
+
+      <!-- Phone 3 — Security & Privacy -->
+      <div class="phone-scene anim d3">
+        <div class="phone-wrap">
+          <div class="phone">
+            <div class="phone-notch"><div class="phone-camera"></div></div>
+            <div class="phone-screen">
+              <div class="app-screen">
+                <div class="app-status-bar">
+                  <span>9:41</span>
+                  <div class="status-icons">
+                    <div style="width:14px;height:7px;border-radius:1px;background:rgba(255,255,255,0.5)"></div>
+                  </div>
+                </div>
+                <!-- Header with back -->
+                <div class="back-header">
+                  <span class="back-arrow">←</span>
+                  <span class="app-header-title">Security & Privacy</span>
+                </div>
+                <!-- Hero -->
+                <div class="sec-screen-hero">
+                  <div class="sec-hero-circle">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  </div>
+                  <div class="sec-hero-eyebrow">How We Protect You</div>
+                  <div class="sec-hero-title">Your cards,<br>locked tight.</div>
+                  <div class="sec-hero-sub">No internet. No servers.<br>No accounts. Just your cards.</div>
+                </div>
+                <!-- Accordion list -->
+                <div class="sec-acc-list">
+                  <div class="sec-acc-item">
+                    <div class="sec-acc-left">
+                      <span class="sec-acc-emoji">🔒</span>
+                      <div>
+                        <div class="sec-acc-title">Your cards are encrypted</div>
+                        <div class="sec-acc-sub">AES-256 — bank-grade standard</div>
+                      </div>
+                    </div>
+                    <span class="sec-acc-chevron">›</span>
+                  </div>
+                  <div class="sec-acc-item">
+                    <div class="sec-acc-left">
+                      <span class="sec-acc-emoji">🔑</span>
+                      <div>
+                        <div class="sec-acc-title">Key locked to your device</div>
+                        <div class="sec-acc-sub">Stored in secure enclave</div>
+                      </div>
+                    </div>
+                    <span class="sec-acc-chevron">›</span>
+                  </div>
+                  <div class="sec-acc-item">
+                    <div class="sec-acc-left">
+                      <span class="sec-acc-emoji">📵</span>
+                      <div>
+                        <div class="sec-acc-title">No internet, ever</div>
+                        <div class="sec-acc-sub">Fully offline — nothing leaves</div>
+                      </div>
+                    </div>
+                    <span class="sec-acc-chevron">›</span>
+                  </div>
+                  <div class="sec-acc-item">
+                    <div class="sec-acc-left">
+                      <span class="sec-acc-emoji">🧬</span>
+                      <div>
+                        <div class="sec-acc-title">PIN & biometric lock</div>
+                        <div class="sec-acc-sub">Auto-locks in 30 seconds</div>
+                      </div>
+                    </div>
+                    <span class="sec-acc-chevron">›</span>
+                  </div>
+                  <div class="sec-acc-item">
+                    <div class="sec-acc-left">
+                      <span class="sec-acc-emoji">👁</span>
+                      <div>
+                        <div class="sec-acc-title">Sensitive details hide</div>
+                        <div class="sec-acc-sub">Auto-hides, clears clipboard</div>
+                      </div>
+                    </div>
+                    <span class="sec-acc-chevron">›</span>
+                  </div>
+                  <div class="sec-acc-item">
+                    <div class="sec-acc-left">
+                      <span class="sec-acc-emoji">📷</span>
+                      <div>
+                        <div class="sec-acc-title">Screenshots blocked</div>
+                        <div class="sec-acc-sub">System-level prevention</div>
+                      </div>
+                    </div>
+                    <span class="sec-acc-chevron">›</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="phone-home-bar"></div>
+          </div>
+        </div>
+        <div class="phone-caption">
+          <h4>Security Centre</h4>
+          <p>Every protection layer,<br>visible and verified.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Privacy Promise ─────────────────────────────────────────── -->
+<section id="privacy-promise">
+  <div class="container">
+    <div class="text-center anim">
+      <span class="section-label">Our promise</span>
+      <h2>We designed it so we<br><span class="italic text-gold">can't access your data.</span></h2>
+      <p class="section-subtext" style="margin: 1rem auto 0; max-width: 50ch;">
+        Not because we chose not to — because the architecture makes it technically impossible.
+        No servers. No accounts. No recovery. No exceptions.
+      </p>
+    </div>
+
+    <div class="promise-grid">
+      <div class="promise-item anim d1">
+        <div class="promise-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>
+          </svg>
+        </div>
+        <h4>No Accounts</h4>
+        <p>No email, no password, no registration — ever. You are anonymous to us in every sense.</p>
+      </div>
+
+      <div class="promise-item anim d2">
+        <div class="promise-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </div>
+        <h4>No Analytics</h4>
+        <p>Zero telemetry, zero crash reporters, zero usage tracking. We simply don't know how you use the app.</p>
+      </div>
+
+      <div class="promise-item anim d3">
+        <div class="promise-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+            <line x1="2" y1="7" x2="22" y2="7"/>
+          </svg>
+        </div>
+        <h4>No Ads</h4>
+        <p>Card Vault is completely free, forever. No in-app purchases, no subscription walls, no ad SDKs of any kind.</p>
+      </div>
+
+      <div class="promise-item anim d4">
+        <div class="promise-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>
+          </svg>
+        </div>
+        <h4>Open Source</h4>
+        <p>The full source code is publicly auditable on GitHub. Trust, but verify — as it should be for any security app.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Download CTA ────────────────────────────────────────────── -->
+<section id="download">
+  <div class="container">
+    <div class="anim">
+      <p class="download-eyebrow">Ready when you are</p>
+      <h2>Take control of<br><span class="italic text-gold">your card data.</span></h2>
+      <p class="sub">Free. Offline. Yours.</p>
+      <div class="download-cta-wrap">
+        <div class="store-btns" style="justify-content:center">
+          <a href="#" class="play-btn" aria-label="Download Card Vault on Google Play">
+            <div class="play-btn-icon">
+              <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l2.6 1.5 247.4-247.4v-5.8L47 0zm325.8 328.3l-82.4-47.6-60.1 60.1 82.4 47.5 60.1-60z" fill="#EA4335"/>
+                <path d="M47 0C34 6.8 25.3 19.2 25.3 35.3L282.4 292.6l60.1-60.1L72.7 1.5 47 0z" fill="#FBBC04"/>
+                <path d="M25.3 476.7c0 16.1 8.7 28.5 21.7 35.3l247.4-247.4-60.1-60.1-209.3 272.2H25.3z" fill="#34A853"/>
+                <path d="M373.1 176.2L104.6 13l-57.6 33.2 269.8 155.7-60.1 60.1 117.2 67.6V206l-.8-.9v-28.9z" fill="#4285F4"/>
+              </svg>
+            </div>
+            <div class="play-btn-text">
+              <span class="play-btn-small">Download on</span>
+              <span class="play-btn-large">Google Play</span>
+            </div>
+          </a>
+
+          <div class="play-btn app-store-btn" aria-label="App Store — Coming Soon">
+            <div class="play-btn-icon">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" style="color:rgba(255,255,255,0.4);width:26px;height:26px">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.14-2.24 1.31-2.22 3.91.03 3.12 2.73 4.16 2.76 4.17l-.09.24zM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+              </svg>
+            </div>
+            <div class="play-btn-text">
+              <span class="play-btn-small" style="display:flex;align-items:center;gap:0.4rem">
+                Coming Soon
+                <span style="background:rgba(201,165,82,0.18);color:var(--gold);font-size:0.58rem;padding:1px 5px;border-radius:3px;border:1px solid rgba(201,165,82,0.25);letter-spacing:0.06em">iOS</span>
+              </span>
+              <span class="play-btn-large" style="color:rgba(255,255,255,0.4)">App Store</span>
+            </div>
+          </div>
+        </div>
+        <p class="download-note">Free · Android available now · iOS coming soon</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ──────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <a href="index.html" class="footer-logo">
+        <div class="footer-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <span class="footer-logo-text">Card Vault</span>
+      </a>
+
+      <ul class="footer-links" role="list">
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="terms.html">Terms of Service</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+
+      <p class="footer-copy">© 2026 Card Vault. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

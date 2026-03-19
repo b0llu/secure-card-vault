@@ -131,7 +131,7 @@ export default function ResetPinScreen() {
           </View>
 
           <Text style={styles.note}>
-            Fingerprint unlock settings stay the same after changing your PIN.
+            Biometric unlock settings stay the same after changing your PIN.
           </Text>
         </ScrollView>
       </SafeAreaView>

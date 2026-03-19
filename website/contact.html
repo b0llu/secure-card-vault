@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Contact Card Vault — Questions, feedback, or security concerns." />
+  <title>Contact — Card Vault</title>
+  <link rel="icon" href="../assets/favicon.png" type="image/png" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(circle at 10% 30%, rgba(201,165,82,0.03) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+      padding-bottom: 7rem;
+    }
+
+    .contact-left h2 {
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      margin-bottom: 1rem;
+    }
+
+    .contact-left p {
+      color: var(--text-2);
+      line-height: 1.8;
+      margin-bottom: 1.5rem;
+    }
+
+    .contact-card {
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: var(--r-lg);
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .contact-card-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 0.25rem;
+    }
+
+    .contact-email {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--gold);
+      word-break: break-all;
+    }
+
+    .contact-email:hover { color: var(--gold-light); }
+
+    .contact-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0.5rem 0;
+    }
+
+    .contact-link-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-2);
+      font-size: 0.88rem;
+      transition: color 0.2s;
+    }
+
+    .contact-link-row:hover { color: var(--text); }
+
+    .contact-link-row svg {
+      width: 16px; height: 16px;
+      flex-shrink: 0;
+      color: var(--text-3);
+    }
+
+    .contact-note {
+      font-size: 0.78rem;
+      color: var(--text-3);
+      line-height: 1.7;
+    }
+
+    .response-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.75rem;
+      color: var(--text-2);
+      margin-top: 0.5rem;
+    }
+
+    .response-badge svg {
+      width: 13px; height: 13px;
+      color: var(--green);
+    }
+
+    .contact-topics {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .topic-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.35rem 1.5rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      transition: border-color 0.3s;
+    }
+
+    .topic-card:hover { border-color: var(--border-2); }
+
+    .topic-icon {
+      width: 36px; height: 36px; flex-shrink: 0;
+      border-radius: 9px;
+      background: var(--surface-2);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .topic-icon svg { width: 16px; height: 16px; color: var(--gold); }
+
+    .topic-title {
+      font-weight: 600;
+      font-size: 0.88rem;
+      margin-bottom: 0.25rem;
+      color: var(--text);
+    }
+
+    .topic-desc {
+      font-size: 0.78rem;
+      color: var(--text-2);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+      .contact-grid { grid-template-columns: 1fr; gap: 3rem; }
+    }
+
+    .nav-links.mobile-open {
+      display: flex !important;
+      position: fixed; top: 0; left: 0; right: 0;
+      background: rgba(7,7,7,0.98);
+      flex-direction: column;
+      padding: 5rem 2rem 2rem;
+      gap: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="container">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <span class="nav-logo-text">Card Vault</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#features">Features</a></li>
+        <li><a href="index.html#security">Security</a></li>
+        <li><a href="index.html#download" class="nav-cta">Get the App</a></li>
+      </ul>
+      <button class="nav-mobile-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Page Hero -->
+<div class="page-hero">
+  <div class="container">
+    <span class="section-label">Get in touch</span>
+    <h1>Contact</h1>
+    <p class="page-desc">Questions, feedback, or security concerns — we're here.</p>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="container">
+  <div class="contact-grid">
+
+    <!-- Left: contact card -->
+    <div class="contact-left">
+      <h2>Reach out<br><span class="italic text-gold">any time.</span></h2>
+      <p>
+        Card Vault is built and maintained independently. Whether you've found a bug,
+        have a security concern, or just want to share feedback, feel free to reach out directly.
+      </p>
+
+      <div class="contact-card">
+        <p class="contact-card-label">Email</p>
+        <a href="mailto:samantdhruv@gmail.com" class="contact-email">samantdhruv@gmail.com</a>
+
+        <div class="contact-divider"></div>
+
+        <a href="https://github.com/b0llu/secure-card-vault/issues" target="_blank" rel="noopener" class="contact-link-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+          </svg>
+          Open an issue on GitHub
+        </a>
+
+        <div class="response-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Typical response within a few days
+        </div>
+
+        <p class="contact-note" style="margin-top:0.5rem">
+          For security vulnerabilities, please email directly rather than opening a public GitHub issue.
+          We take all security reports seriously and will respond promptly.
+        </p>
+      </div>
+    </div>
+
+    <!-- Right: topic guide -->
+    <div class="contact-topics">
+      <p style="font-size:0.82rem;color:var(--text-3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.5rem">Common topics</p>
+
+      <div class="topic-card">
+        <div class="topic-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="topic-title">Security Concerns</div>
+          <div class="topic-desc">Found a potential vulnerability or security issue? Email directly. Please don't open a public issue — we'll work with you privately to address it.</div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <div>
+          <div class="topic-title">Bug Reports</div>
+          <div class="topic-desc">App crashing or something not working as expected? Please include your Android version, device model, and steps to reproduce. GitHub issues are preferred for bugs.</div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="topic-title">Feedback & Feature Requests</div>
+          <div class="topic-desc">Have an idea to improve Card Vault? We'd love to hear it. Feature requests are best submitted as GitHub issues so they can be tracked and discussed openly.</div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div>
+          <div class="topic-title">Privacy Questions</div>
+          <div class="topic-desc">Questions about what data the app stores or how encryption works? Our <a href="privacy.html" style="color:var(--gold)">Privacy Policy</a> covers this in detail, but feel free to ask directly.</div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="21 15 21 19 3 19 3 15"/><polyline points="17 11 12 6 7 11"/><line x1="12" y1="6" x2="12" y2="18"/>
+          </svg>
+        </div>
+        <div>
+          <div class="topic-title">Backup & Restore Help</div>
+          <div class="topic-desc">Having trouble with export or import? Note that forgotten backup passwords cannot be recovered — this is by design. For other backup issues, reach out via email.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <a href="index.html" class="footer-logo">
+        <div class="footer-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <span class="footer-logo-text">Card Vault</span>
+      </a>
+      <ul class="footer-links">
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="terms.html">Terms of Service</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <p class="footer-copy">© 2026 Card Vault. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
