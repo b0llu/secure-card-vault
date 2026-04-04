@@ -13,7 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppBackground } from '../src/components/AppBackground';
 import { AppModal, ModalConfig } from '../src/components/AppModal';
@@ -99,6 +99,7 @@ function groupCards(
 
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<ModalConfig | null>(null);
@@ -271,7 +272,7 @@ export default function HomeScreen() {
           />
         </View>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) + 16 }]}>
           <LinearGradient
             colors={['rgba(8,8,8,0)', 'rgba(8,8,8,0.96)']}
             style={styles.footerGradient}
@@ -836,7 +837,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     paddingHorizontal: 15,
-    paddingBottom: 32,
+    paddingTop: 12,
   },
   footerGradient: {
     position: 'absolute',
