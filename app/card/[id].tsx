@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   interactiveRight: {
-    flex: 2,
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
@@ -355,12 +355,14 @@ const styles = StyleSheet.create({
   infoLabel: {
     color: theme.colors.textMuted,
     fontSize: 14,
-    flex: 1,
+    flexShrink: 0,
+    maxWidth: '38%',
   },
   infoValue: {
     color: theme.colors.text,
     fontSize: 15,
     fontWeight: '500',
+    flex: 1,
     textAlign: 'right',
   },
   monoValue: {

@@ -54,7 +54,7 @@ function ModeChip({
         size={15}
         color={active ? theme.colors.primaryInk : theme.colors.textMuted}
       />
-      <Text style={[styles.modeChipText, active && styles.modeChipTextActive]}>
+      <Text style={[styles.modeChipText, active && styles.modeChipTextActive]} allowFontScaling={false}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -77,7 +77,7 @@ function CustomChip({
       style={[styles.modeChip, active && styles.modeChipActive]}
     >
       <View style={[styles.customChipDot, { backgroundColor: color }]} />
-      <Text style={[styles.modeChipText, active && styles.modeChipTextActive]}>
+      <Text style={[styles.modeChipText, active && styles.modeChipTextActive]} allowFontScaling={false}>
         Custom
       </Text>
     </TouchableOpacity>
@@ -139,8 +139,8 @@ export function CardAppearanceEditor({
     <>
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Card Appearance</Text>
-          <Text style={styles.sectionSubtitle}>
+          <Text style={styles.sectionTitle} allowFontScaling={false}>Card Appearance</Text>
+          <Text style={styles.sectionSubtitle} allowFontScaling={false}>
             Match the saved card to what you remember from your wallet.
           </Text>
         </View>
@@ -149,7 +149,7 @@ export function CardAppearanceEditor({
           <CardView card={previewCard} />
         </View>
 
-        <Text style={styles.statusText}>{statusCopy}</Text>
+        <Text style={styles.statusText} allowFontScaling={false}>{statusCopy}</Text>
 
         <View style={styles.modeRow}>
           <ModeChip
@@ -176,7 +176,7 @@ export function CardAppearanceEditor({
                 style={[styles.swatchButton, isSelected && styles.swatchButtonSelected]}
               >
                 <View style={[styles.swatchDot, { backgroundColor: preset.value }]} />
-                <Text style={styles.swatchLabel}>{preset.label}</Text>
+                <Text style={styles.swatchLabel} allowFontScaling={false}>{preset.label}</Text>
               </TouchableOpacity>
             );
           })}
@@ -193,8 +193,8 @@ export function CardAppearanceEditor({
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
               <View style={styles.modalHeaderCopy}>
-                <Text style={styles.modalTitle}>Pick Custom Color</Text>
-                <Text style={styles.modalSubtitle}>
+                <Text style={styles.modalTitle} allowFontScaling={false}>Pick Custom Color</Text>
+                <Text style={styles.modalSubtitle} allowFontScaling={false}>
                   Choose the closest match for the physical card.
                 </Text>
               </View>
@@ -214,7 +214,7 @@ export function CardAppearanceEditor({
             >
               <View style={styles.modalPreviewRow}>
                 <View style={[styles.modalPreviewSwatch, { backgroundColor: draftColor }]} />
-                <Text style={styles.modalPreviewText}>{draftColor}</Text>
+                <Text style={styles.modalPreviewText} allowFontScaling={false}>{draftColor}</Text>
               </View>
 
               <View style={styles.modalCardPreviewWrap}>

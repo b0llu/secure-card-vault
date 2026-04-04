@@ -96,8 +96,8 @@ export function CardBrandPicker({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
-        Card Brand{required ? <Text style={styles.requiredMark}> *</Text> : null}
+      <Text style={styles.label} allowFontScaling={false}>
+        Card Brand{required ? <Text style={styles.requiredMark} allowFontScaling={false}> *</Text> : null}
       </Text>
 
       <TouchableOpacity
@@ -105,15 +105,16 @@ export function CardBrandPicker({
         onPress={openModal}
         activeOpacity={0.8}
       >
-        <Text style={[styles.selectValue, !currentLabel && styles.selectPlaceholder]}>
+        <Text style={[styles.selectValue, !currentLabel && styles.selectPlaceholder]} allowFontScaling={false}>
           {currentLabel || 'Select or detect a brand'}
         </Text>
         <Feather name="chevron-down" size={18} color={theme.colors.textMuted} />
       </TouchableOpacity>
 
       {detectedBrand && detectedBrand !== 'unknown' ? (
-        <Text style={styles.detected}>
+        <Text style={styles.detected} allowFontScaling={false}>
           Detected: {getBrandLabel(detectedBrand)}
+
         </Text>
       ) : null}
 
@@ -133,7 +134,7 @@ export function CardBrandPicker({
                   <TouchableOpacity onPress={() => setCustomView(false)} activeOpacity={0.75}>
                     <Feather name="arrow-left" size={18} color={theme.colors.textMuted} />
                   </TouchableOpacity>
-                  <Text style={styles.modalTitle}>Custom Brand</Text>
+                  <Text style={styles.modalTitle} allowFontScaling={false}>Custom Brand</Text>
                   <TouchableOpacity onPress={closeModal} activeOpacity={0.75}>
                     <Feather name="x" size={18} color={theme.colors.textMuted} />
                   </TouchableOpacity>
@@ -159,7 +160,7 @@ export function CardBrandPicker({
                     disabled={!draftCustom.trim()}
                   >
                     <Feather name="check" size={16} color={theme.colors.primaryInk} />
-                    <Text style={styles.doneButtonText}>Done</Text>
+                    <Text style={styles.doneButtonText} allowFontScaling={false}>Done</Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -167,7 +168,7 @@ export function CardBrandPicker({
               /* ── Brand list screen ── */
               <>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Select Card Brand</Text>
+                  <Text style={styles.modalTitle} allowFontScaling={false}>Select Card Brand</Text>
                   <TouchableOpacity onPress={closeModal} activeOpacity={0.75}>
                     <Feather name="x" size={18} color={theme.colors.textMuted} />
                   </TouchableOpacity>
@@ -205,7 +206,7 @@ export function CardBrandPicker({
                       color={value === 'custom' ? theme.colors.primary : theme.colors.textMuted}
                       style={styles.optionIcon}
                     />
-                    <Text style={[styles.optionText, value === 'custom' ? styles.optionTextActive : null]}>
+                    <Text style={[styles.optionText, value === 'custom' ? styles.optionTextActive : null]} allowFontScaling={false}>
                       {value === 'custom' && customBrandName ? customBrandName : 'Custom'}
                     </Text>
                     {value === 'custom'
@@ -226,7 +227,7 @@ export function CardBrandPicker({
                         }}
                         activeOpacity={0.8}
                       >
-                        <Text style={[styles.optionText, isActive ? styles.optionTextActive : null]}>
+                        <Text style={[styles.optionText, isActive ? styles.optionTextActive : null]} allowFontScaling={false}>
                           {getBrandLabel(brand)}
                         </Text>
                         {isActive ? (
@@ -238,7 +239,7 @@ export function CardBrandPicker({
 
                   {filtered.length === 0 ? (
                     <View style={styles.emptyWrap}>
-                      <Text style={styles.emptyText}>No brands found for "{search}"</Text>
+                      <Text style={styles.emptyText} allowFontScaling={false}>No brands found for "{search}"</Text>
                     </View>
                   ) : null}
                 </ScrollView>

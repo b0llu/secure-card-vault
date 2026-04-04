@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -27,6 +28,8 @@ import { theme } from '../src/theme';
 export default function UnlockScreen() {
   const router = useRouter();
   const { unlock } = useAuth();
+  const { height: screenHeight } = useWindowDimensions();
+  const isCompact = screenHeight < 700;
   const [errorMsg, setErrorMsg] = useState('');
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -126,28 +129,28 @@ export default function UnlockScreen() {
   return (
     <AppBackground>
       <SafeAreaView style={styles.safe}>
-        <ScrollView contentContainerStyle={styles.container}>
-          <View style={styles.hero}>
-            <View style={styles.heroBadge}>
-              <Feather name="shield" size={24} color={theme.colors.primary} />
+        <ScrollView contentContainerStyle={[styles.container, isCompact && styles.containerCompact]}>
+          <View style={[styles.hero, isCompact && styles.heroCompact]}>
+            <View style={[styles.heroBadge, isCompact && styles.heroBadgeCompact]}>
+              <Feather name="shield" size={isCompact ? 20 : 24} color={theme.colors.primary} />
             </View>
-            <Text style={styles.title}>Welcome back</Text>
+            <Text style={[styles.title, isCompact && styles.titleCompact]} allowFontScaling={false}>Welcome back</Text>
           </View>
 
-          <View style={[styles.pinCard, isLocked && styles.pinCardLocked]}>
+          <View style={[styles.pinCard, isLocked && styles.pinCardLocked, isCompact && styles.pinCardCompact]}>
             {verifying ? (
               <View style={styles.verifyingContainer}>
                 <ActivityIndicator color={theme.colors.primary} size="large" />
-                <Text style={styles.verifyingText}>Verifying…</Text>
+                <Text style={styles.verifyingText} allowFontScaling={false}>Verifying…</Text>
               </View>
             ) : isLocked ? (
               <View style={styles.lockoutContainer}>
                 <Feather name="lock" size={28} color={theme.colors.warning} />
-                <Text style={styles.lockoutTitle}>Vault Locked</Text>
-                <Text style={styles.lockoutMessage}>{lockoutMessage}</Text>
-                <Text style={styles.lockoutCountdown}>{lockoutSeconds}s</Text>
+                <Text style={styles.lockoutTitle} allowFontScaling={false}>Vault Locked</Text>
+                <Text style={styles.lockoutMessage} allowFontScaling={false}>{lockoutMessage}</Text>
+                <Text style={styles.lockoutCountdown} allowFontScaling={false}>{lockoutSeconds}s</Text>
                 {failedAttempts >= 10 && (
-                  <Text style={styles.lockoutHint}>
+                  <Text style={styles.lockoutHint} allowFontScaling={false}>
                     If you have forgotten your PIN, you will need to reinstall the app to reset it.
                   </Text>
                 )}
@@ -170,7 +173,7 @@ export default function UnlockScreen() {
               activeOpacity={0.82}
             >
               <Feather name="shield" size={16} color={theme.colors.primary} />
-              <Text style={styles.biometricText}>Use biometrics instead</Text>
+              <Text style={styles.biometricText} allowFontScaling={false}>Use biometrics instead</Text>
             </TouchableOpacity>
           ) : null}
         </ScrollView>
@@ -192,9 +195,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 22,
   },
+  containerCompact: {
+    paddingVertical: 20,
+    gap: 14,
+  },
   hero: {
     alignItems: 'center',
     gap: 10,
+  },
+  heroCompact: {
+    gap: 6,
   },
   heroBadge: {
     width: 72,
@@ -206,11 +216,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  heroBadgeCompact: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+  },
   title: {
     color: theme.colors.text,
     fontSize: 30,
     fontWeight: '700',
     textAlign: 'center',
+  },
+  titleCompact: {
+    fontSize: 22,
   },
   pinCard: {
     width: '100%',
@@ -221,6 +239,11 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     paddingVertical: 28,
     paddingHorizontal: 18,
+  },
+  pinCardCompact: {
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 22,
   },
   pinCardLocked: {
     borderColor: theme.colors.warning,

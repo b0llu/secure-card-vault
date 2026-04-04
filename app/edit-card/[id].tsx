@@ -274,7 +274,7 @@ export default function EditCardScreen() {
                       size={16}
                       color={theme.colors.textMuted}
                     />
-                    <Text style={styles.fieldAccessoryText}>{showCvv ? 'Hide' : 'Show'}</Text>
+                    <Text style={styles.fieldAccessoryText} allowFontScaling={false}>{showCvv ? 'Hide' : 'Show'}</Text>
                   </TouchableOpacity>
                 }
                 required
@@ -348,7 +348,7 @@ function Field({
 }) {
   return (
     <View style={styles.fieldContainer}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+      <Text style={styles.fieldLabel} allowFontScaling={false}>{label}</Text>
       <View style={styles.fieldInputWrap}>
         <TextInput
           style={[styles.fieldInput, trailingAccessory ? styles.fieldInputWithAccessory : null]}

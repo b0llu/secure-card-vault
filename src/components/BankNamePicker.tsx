@@ -132,8 +132,8 @@ export function BankNamePicker({ value, onChange, required }: BankNamePickerProp
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
-        Bank Name{required ? <Text style={styles.requiredMark}> *</Text> : null}
+      <Text style={styles.label} allowFontScaling={false}>
+        Bank Name{required ? <Text style={styles.requiredMark} allowFontScaling={false}> *</Text> : null}
       </Text>
 
       <TouchableOpacity
@@ -141,7 +141,7 @@ export function BankNamePicker({ value, onChange, required }: BankNamePickerProp
         onPress={openModal}
         activeOpacity={0.8}
       >
-        <Text style={[styles.selectValue, !value && styles.selectPlaceholder]} numberOfLines={1}>
+        <Text style={[styles.selectValue, !value && styles.selectPlaceholder]} numberOfLines={1} allowFontScaling={false}>
           {displayLabel}
         </Text>
         <Feather name="chevron-down" size={18} color={theme.colors.textMuted} />
@@ -163,7 +163,7 @@ export function BankNamePicker({ value, onChange, required }: BankNamePickerProp
                   <TouchableOpacity onPress={() => setCustomView(false)} activeOpacity={0.75}>
                     <Feather name="arrow-left" size={18} color={theme.colors.textMuted} />
                   </TouchableOpacity>
-                  <Text style={styles.modalTitle}>Custom Bank Name</Text>
+                  <Text style={styles.modalTitle} allowFontScaling={false}>Custom Bank Name</Text>
                   <TouchableOpacity onPress={closeModal} activeOpacity={0.75}>
                     <Feather name="x" size={18} color={theme.colors.textMuted} />
                   </TouchableOpacity>
@@ -189,7 +189,7 @@ export function BankNamePicker({ value, onChange, required }: BankNamePickerProp
                     disabled={!draftCustom.trim()}
                   >
                     <Feather name="check" size={16} color={theme.colors.primaryInk} />
-                    <Text style={styles.doneButtonText}>Done</Text>
+                    <Text style={styles.doneButtonText} allowFontScaling={false}>Done</Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -197,7 +197,7 @@ export function BankNamePicker({ value, onChange, required }: BankNamePickerProp
               /* ── Bank list screen ── */
               <>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Select Bank</Text>
+                  <Text style={styles.modalTitle} allowFontScaling={false}>Select Bank</Text>
                   <TouchableOpacity onPress={closeModal} activeOpacity={0.75}>
                     <Feather name="x" size={18} color={theme.colors.textMuted} />
                   </TouchableOpacity>
@@ -235,7 +235,7 @@ export function BankNamePicker({ value, onChange, required }: BankNamePickerProp
                       color={isCustom ? theme.colors.primary : theme.colors.textMuted}
                       style={styles.optionIcon}
                     />
-                    <Text style={[styles.optionText, isCustom ? styles.optionTextActive : null]}>
+                    <Text style={[styles.optionText, isCustom ? styles.optionTextActive : null]} allowFontScaling={false}>
                       {isCustom ? value : 'Custom'}
                     </Text>
                     {isCustom
@@ -256,7 +256,7 @@ export function BankNamePicker({ value, onChange, required }: BankNamePickerProp
                         }}
                         activeOpacity={0.8}
                       >
-                        <Text style={[styles.optionText, isActive ? styles.optionTextActive : null]}>
+                        <Text style={[styles.optionText, isActive ? styles.optionTextActive : null]} allowFontScaling={false}>
                           {bank}
                         </Text>
                         {isActive ? (
@@ -268,7 +268,7 @@ export function BankNamePicker({ value, onChange, required }: BankNamePickerProp
 
                   {filtered.length === 0 ? (
                     <View style={styles.emptyWrap}>
-                      <Text style={styles.emptyText}>No banks found for "{search}"</Text>
+                      <Text style={styles.emptyText} allowFontScaling={false}>No banks found for "{search}"</Text>
                     </View>
                   ) : null}
                 </ScrollView>

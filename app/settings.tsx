@@ -131,8 +131,8 @@ export default function SettingsScreen() {
                 <Feather name="shield" size={18} color={theme.colors.primary} />
               </View>
               <View style={styles.rowCopy}>
-                <Text style={styles.rowTitle}>{biometricLabel}</Text>
-                <Text style={styles.rowSubtitle}>
+                <Text style={styles.rowTitle} allowFontScaling={false}>{biometricLabel}</Text>
+                <Text style={styles.rowSubtitle} allowFontScaling={false}>
                   {biometricsAvailable
                     ? 'Use biometrics for faster unlock.'
                     : 'Not available on this device yet.'}
@@ -206,8 +206,8 @@ export default function SettingsScreen() {
               <Feather name="trash-2" size={18} color={theme.colors.danger} />
             </View>
             <View style={styles.rowCopy}>
-              <Text style={styles.dangerTitle}>Purge Vault</Text>
-              <Text style={styles.dangerSubtitle}>
+              <Text style={styles.dangerTitle} allowFontScaling={false}>Purge Vault</Text>
+              <Text style={styles.dangerSubtitle} allowFontScaling={false}>
                 Permanently delete all cards. This cannot be undone.
               </Text>
             </View>
@@ -216,7 +216,7 @@ export default function SettingsScreen() {
 
           <View style={styles.footerNote}>
             <Feather name="clock" size={16} color={theme.colors.textSubtle} />
-            <Text style={styles.footerNoteText}>
+            <Text style={styles.footerNoteText} allowFontScaling={false}>
               The vault auto-locks after 30 seconds in the background.
             </Text>
           </View>
@@ -229,7 +229,7 @@ export default function SettingsScreen() {
 }
 
 function SectionTitle({ title }: { title: string }) {
-  return <Text style={styles.sectionTitle}>{title}</Text>;
+  return <Text style={styles.sectionTitle} allowFontScaling={false}>{title}</Text>;
 }
 
 function SettingRow({
@@ -251,8 +251,8 @@ function SettingRow({
         <Feather name={icon} size={18} color={theme.colors.primary} />
       </View>
       <View style={styles.rowCopy}>
-        <Text style={styles.rowTitle}>{title}</Text>
-        <Text style={styles.rowSubtitle}>{subtitle}</Text>
+        <Text style={styles.rowTitle} allowFontScaling={false}>{title}</Text>
+        <Text style={styles.rowSubtitle} allowFontScaling={false}>{subtitle}</Text>
       </View>
       <Feather name="chevron-right" size={18} color={theme.colors.textSubtle} />
     </TouchableOpacity>

@@ -40,8 +40,8 @@ export function AppModal({ config, onDismiss }: AppModalProps) {
     >
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.title}>{display?.title}</Text>
-          <Text style={styles.message}>{display?.message}</Text>
+          <Text style={styles.title} allowFontScaling={false}>{display?.title}</Text>
+          <Text style={styles.message} allowFontScaling={false}>{display?.message}</Text>
           <View style={styles.buttons}>
             {display?.buttons.map((btn, i) => (
               <TouchableOpacity
@@ -53,7 +53,7 @@ export function AppModal({ config, onDismiss }: AppModalProps) {
                 }}
                 activeOpacity={0.78}
               >
-                <Text style={[styles.btnText, btnTextColor(btn.variant)]}>
+                <Text style={[styles.btnText, btnTextColor(btn.variant)]} allowFontScaling={false}>
                   {btn.label}
                 </Text>
               </TouchableOpacity>

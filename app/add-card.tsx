@@ -371,13 +371,13 @@ export default function AddCardScreen() {
               {/* Scan frame + hint */}
               <View style={styles.cameraOverlay}>
                 <View style={styles.scanFrame} />
-                <Text style={styles.scanHint}>Align the front of your card</Text>
+                <Text style={styles.scanHint} allowFontScaling={false}>Align the front of your card</Text>
               </View>
 
               {/* Controls: Cancel | Capture | Gallery */}
               <View style={styles.cameraControls}>
                 <TouchableOpacity onPress={handleDoneScanning} style={styles.cancelBtn}>
-                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                  <Text style={styles.cancelBtnText} allowFontScaling={false}>Cancel</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -389,7 +389,7 @@ export default function AddCardScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={handlePickImage} style={styles.galleryBtn} disabled={scanning}>
-                  <Text style={styles.galleryBtnText}>Gallery</Text>
+                  <Text style={styles.galleryBtnText} allowFontScaling={false}>Gallery</Text>
                 </TouchableOpacity>
               </View>
 
@@ -397,13 +397,13 @@ export default function AddCardScreen() {
               {scanning && (
                 <View style={styles.scanningOverlay}>
                   <ActivityIndicator size="large" color={theme.colors.primary} />
-                  <Text style={styles.scanningText}>Scanning card…</Text>
+                  <Text style={styles.scanningText} allowFontScaling={false}>Scanning card…</Text>
                 </View>
               )}
             </>
           ) : (
             <View style={styles.noCameraContainer}>
-              <Text style={styles.noCameraText}>No camera available</Text>
+              <Text style={styles.noCameraText} allowFontScaling={false}>No camera available</Text>
               <ThemedButton title="Go Back" onPress={handleDoneScanning} variant="ghost" />
             </View>
           )}
@@ -422,10 +422,10 @@ export default function AddCardScreen() {
                   activeOpacity={0.84}
                 >
                   <Feather name="camera" size={18} color={theme.colors.primaryInk} />
-                  <Text style={styles.scanButtonText}>Scan card with camera</Text>
+                  <Text style={styles.scanButtonText} allowFontScaling={false}>Scan card with camera</Text>
                 </TouchableOpacity>
 
-                <Text style={styles.orDivider}>Details</Text>
+                <Text style={styles.orDivider} allowFontScaling={false}>Details</Text>
 
                 {/* ── Required fields ── */}
                 <Field
@@ -491,7 +491,7 @@ export default function AddCardScreen() {
                         size={16}
                         color={theme.colors.textMuted}
                       />
-                      <Text style={styles.fieldAccessoryText}>{showCvv ? 'Hide' : 'Show'}</Text>
+                      <Text style={styles.fieldAccessoryText} allowFontScaling={false}>{showCvv ? 'Hide' : 'Show'}</Text>
                     </TouchableOpacity>
                   }
                   required
@@ -610,9 +610,9 @@ function Field({
 }: FieldProps) {
   return (
     <View style={styles.fieldContainer}>
-      <Text style={styles.fieldLabel}>
+      <Text style={styles.fieldLabel} allowFontScaling={false}>
         {label}
-        {required ? <Text style={styles.fieldRequired}> *</Text> : null}
+        {required ? <Text style={styles.fieldRequired} allowFontScaling={false}> *</Text> : null}
       </Text>
       <View style={styles.fieldInputWrap}>
         <TextInput

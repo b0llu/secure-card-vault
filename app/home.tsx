@@ -164,7 +164,7 @@ export default function HomeScreen() {
     if (!section.title) return null;
     return (
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionHeaderText}>
+        <Text style={styles.sectionHeaderText} allowFontScaling={false}>
           {section.title.toUpperCase()}
         </Text>
       </View>
@@ -176,15 +176,15 @@ export default function HomeScreen() {
   const listEmptyComponent = loading ? (
     <View style={styles.emptyCard}>
       <ActivityIndicator color={theme.colors.primary} size="small" />
-      <Text style={styles.emptyText}>Loading your vault…</Text>
+      <Text style={styles.emptyText} allowFontScaling={false}>Loading your vault…</Text>
     </View>
   ) : (
     <View style={styles.emptyCard}>
       <View style={styles.emptyIconWrap}>
         <Feather name="credit-card" size={22} color={theme.colors.primary} />
       </View>
-      <Text style={styles.emptyTitle}>No cards saved yet</Text>
-      <Text style={styles.emptyText}>
+      <Text style={styles.emptyTitle} allowFontScaling={false}>No cards saved yet</Text>
+      <Text style={styles.emptyText} allowFontScaling={false}>
         Scan your first card or add it manually to start building your vault.
       </Text>
     </View>
@@ -196,7 +196,7 @@ export default function HomeScreen() {
         <View style={styles.topChrome}>
           <View style={styles.header}>
             <View style={styles.headerCopy}>
-              <Text style={styles.headerTitle}>Card Vault</Text>
+              <Text style={styles.headerTitle} allowFontScaling={false}>Card Vault</Text>
             </View>
 
             <View style={styles.headerActions}>
@@ -241,6 +241,7 @@ export default function HomeScreen() {
                           styles.groupingPillText,
                           isActive && styles.groupingPillTextActive,
                         ]}
+                        allowFontScaling={false}
                       >
                         {option.label}
                       </Text>

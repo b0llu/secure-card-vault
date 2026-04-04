@@ -128,13 +128,13 @@ function AccordionItem({ point, isLast }: { point: (typeof SECURITY_POINTS)[0]; 
             <Text style={styles.icon}>{point.icon}</Text>
           </View>
           <View style={styles.headerText}>
-            <Text style={styles.itemTitle}>{point.title}</Text>
+            <Text style={styles.itemTitle} allowFontScaling={false}>{point.title}</Text>
             <Animated.View style={{
               height: animOpacity.interpolate({ inputRange: [0, 1], outputRange: [17, 0] }),
               opacity: animOpacity.interpolate({ inputRange: [0, 0.4, 1], outputRange: [1, 0, 0] }),
               overflow: 'hidden',
             }}>
-              <Text style={styles.tagline} numberOfLines={1}>{point.tagline}</Text>
+              <Text style={styles.tagline} numberOfLines={1} allowFontScaling={false}>{point.tagline}</Text>
             </Animated.View>
           </View>
         </View>
@@ -145,7 +145,7 @@ function AccordionItem({ point, isLast }: { point: (typeof SECURITY_POINTS)[0]; 
 
       <Animated.View style={{ height: animHeight, overflow: 'hidden', opacity: animOpacity }}>
         <View style={styles.bodyWrap}>
-          <Text style={styles.body}>{point.body}</Text>
+          <Text style={styles.body} allowFontScaling={false}>{point.body}</Text>
         </View>
       </Animated.View>
     </Pressable>
@@ -164,9 +164,9 @@ export default function SecurityScreen() {
             <View style={styles.heroBadge}>
               <Feather name="shield" size={26} color={theme.colors.primary} />
             </View>
-            <Text style={styles.eyebrow}>How we protect you</Text>
-            <Text style={styles.title}>Your cards, locked tight.</Text>
-            <Text style={styles.subtitle}>
+            <Text style={styles.eyebrow} allowFontScaling={false}>How we protect you</Text>
+            <Text style={styles.title} allowFontScaling={false}>Your cards, locked tight.</Text>
+            <Text style={styles.subtitle} allowFontScaling={false}>
               No internet. No servers. No accounts. Just your cards, on your phone, protected by the same encryption used by banks.
             </Text>
           </View>

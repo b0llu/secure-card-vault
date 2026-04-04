@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Vibration,
+  useWindowDimensions,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
@@ -43,6 +44,14 @@ export const PinInput: React.FC<PinInputProps> = ({
   label = 'Enter PIN',
   errorMessage,
 }) => {
+  const { width: screenWidth } = useWindowDimensions();
+  // Reserve horizontal padding: container(8*2) + pinCard(18*2) + safe(24*2) = ~100
+  const availableWidth = screenWidth - 100;
+  // 3 keys + 2 gaps(16px each) = keySize*3 + 32; solve for keySize, clamp 56–76
+  const keySize = Math.max(56, Math.min(76, Math.floor((availableWidth - 32) / 3)));
+  const keyGap = Math.max(8, Math.min(16, Math.floor((availableWidth - keySize * 3) / 2)));
+  const keyFontSize = keySize < 64 ? 20 : 24;
+
   const [pin, setPin] = useState('');
   const shakeX = React.useRef(new Animated.Value(0)).current;
 
@@ -106,7 +115,7 @@ export const PinInput: React.FC<PinInputProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={styles.label} allowFontScaling={false}>{label}</Text>
 
       {/* Dot indicators — announced as a group to screen readers */}
       <Animated.View
@@ -128,6 +137,7 @@ export const PinInput: React.FC<PinInputProps> = ({
       {errorMessage ? (
         <Text
           style={styles.errorText}
+          allowFontScaling={false}
           accessibilityLiveRegion="polite"
           accessibilityRole="alert"
         >
@@ -136,13 +146,17 @@ export const PinInput: React.FC<PinInputProps> = ({
       ) : null}
 
       {/* Numpad */}
-      <View style={styles.numpad}>
+      <View style={[styles.numpad, { gap: Math.max(8, Math.min(12, keyGap)) }]}>
         {KEYS.map((row, ri) => (
-          <View key={ri} style={styles.row}>
+          <View key={ri} style={[styles.row, { gap: keyGap }]}>
             {row.map((key, ki) => (
               <TouchableOpacity
                 key={ki}
-                style={[styles.key, !key && styles.keyEmpty]}
+                style={[
+                  styles.key,
+                  { width: keySize, height: keySize, borderRadius: keySize / 2 },
+                  !key && styles.keyEmpty,
+                ]}
                 onPress={() => handlePress(key)}
                 disabled={disabled || !key}
                 activeOpacity={0.6}
@@ -153,11 +167,11 @@ export const PinInput: React.FC<PinInputProps> = ({
                 {key === '⌫' ? (
                   <Feather
                     name="delete"
-                    size={22}
+                    size={keyFontSize - 2}
                     color={theme.colors.text}
                   />
                 ) : (
-                  <Text style={styles.keyText}>{key}</Text>
+                  <Text style={[styles.keyText, { fontSize: keyFontSize }]} allowFontScaling={false}>{key}</Text>
                 )}
               </TouchableOpacity>
             ))}

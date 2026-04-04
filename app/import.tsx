@@ -188,7 +188,7 @@ export default function ImportScreen() {
             </View>
 
             <View style={styles.formCard}>
-              <Text style={styles.fieldLabel}>Step 1</Text>
+              <Text style={styles.fieldLabel} allowFontScaling={false}>Step 1</Text>
               <TouchableOpacity
                 style={[styles.filePicker, fileUri ? styles.filePickerSelected : null]}
                 onPress={handlePickFile}
@@ -202,16 +202,16 @@ export default function ImportScreen() {
                   />
                 </View>
                 <View style={styles.fileCopy}>
-                  <Text style={styles.fileTitle}>
+                  <Text style={styles.fileTitle} allowFontScaling={false}>
                     {fileUri ? 'Backup selected' : 'Choose .securevault file'}
                   </Text>
-                  <Text style={styles.fileSubtitle} numberOfLines={1}>
+                  <Text style={styles.fileSubtitle} numberOfLines={1} allowFontScaling={false}>
                     {fileName || 'Tap to browse for an encrypted backup file.'}
                   </Text>
                 </View>
               </TouchableOpacity>
 
-              <Text style={styles.fieldLabel}>Step 2</Text>
+              <Text style={styles.fieldLabel} allowFontScaling={false}>Step 2</Text>
               <View style={styles.passwordRow}>
                 <TextInput
                   style={[styles.input, styles.inputNoBorder]}
@@ -227,7 +227,7 @@ export default function ImportScreen() {
                   onPress={() => setShowPassword((v) => !v)}
                   style={styles.showHideButton}
                 >
-                  <Text style={styles.showHideText}>
+                  <Text style={styles.showHideText} allowFontScaling={false}>
                     {showPassword ? 'Hide' : 'Show'}
                   </Text>
                 </TouchableOpacity>
@@ -246,7 +246,7 @@ export default function ImportScreen() {
 
             <View style={styles.noteCard}>
               <Feather style={{marginTop: 3}} name="shield" size={16} color={theme.colors.primary} />
-              <Text style={styles.noteText}>
+              <Text style={styles.noteText} allowFontScaling={false}>
                 Decrypted locally using your password. Nothing leaves your device.
               </Text>
             </View>
@@ -260,8 +260,8 @@ export default function ImportScreen() {
         <View style={[StyleSheet.absoluteFill, styles.importingOverlay]}>
           <View style={styles.importingCard}>
             <ActivityIndicator color={theme.colors.primary} size="large" />
-            <Text style={styles.importingTitle}>Importing your vault…</Text>
-            <Text style={styles.importingSubtitle}>
+            <Text style={styles.importingTitle} allowFontScaling={false}>Importing your vault…</Text>
+            <Text style={styles.importingSubtitle} allowFontScaling={false}>
               Decrypting and restoring your cards.{'\n'}Please don't close the app.
             </Text>
           </View>
@@ -279,7 +279,7 @@ function StepRow({ icon, text }: { icon: React.ComponentProps<typeof Feather>['n
       <View style={styles.stepIcon}>
         <Feather name={icon} size={15} color={theme.colors.primary} />
       </View>
-      <Text style={styles.stepText}>{text}</Text>
+      <Text style={styles.stepText} allowFontScaling={false}>{text}</Text>
     </View>
   );
 }

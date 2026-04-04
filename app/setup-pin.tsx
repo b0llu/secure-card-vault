@@ -128,7 +128,7 @@ export default function SetupPinScreen() {
             {saving ? (
               <View style={styles.savingContainer}>
                 <ActivityIndicator color={theme.colors.primary} size="large" />
-                <Text style={styles.savingText}>Setting up vault…</Text>
+                <Text style={styles.savingText} allowFontScaling={false}>Setting up vault…</Text>
               </View>
             ) : (
               <PinInput
@@ -165,9 +165,9 @@ function Hero({
       <View style={styles.heroBadge}>
         <Feather name={icon} size={24} color={theme.colors.primary} />
       </View>
-      <Text style={styles.eyebrow}>{eyebrow}</Text>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+      <Text style={styles.eyebrow} allowFontScaling={false}>{eyebrow}</Text>
+      <Text style={styles.title} allowFontScaling={false}>{title}</Text>
+      <Text style={styles.subtitle} allowFontScaling={false}>{subtitle}</Text>
     </View>
   );
 }

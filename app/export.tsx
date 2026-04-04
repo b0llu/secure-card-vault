@@ -142,14 +142,14 @@ export default function ExportScreen() {
                   onPress={() => setShowPassword((v) => !v)}
                   style={styles.showHideButton}
                 >
-                  <Text style={styles.showHideText}>
+                  <Text style={styles.showHideText} allowFontScaling={false}>
                     {showPassword ? 'Hide' : 'Show'}
                   </Text>
                 </TouchableOpacity>
               </View>
 
               {password.length > 0 && password.length < 10 && (
-                <Text style={styles.passwordHint}>
+                <Text style={styles.passwordHint} allowFontScaling={false}>
                   {10 - password.length} more character{10 - password.length === 1 ? '' : 's'} needed
                 </Text>
               )}
@@ -185,9 +185,9 @@ export default function ExportScreen() {
                   <Feather name="check" size={20} color={theme.colors.success} />
                 </View>
                 <View style={styles.successCopy}>
-                  <Text style={styles.successTitle}>Backup saved</Text>
-                  <Text style={styles.successFilename} numberOfLines={1}>{savedFilename}</Text>
-                  <Text style={styles.successHint}>
+                  <Text style={styles.successTitle} allowFontScaling={false}>Backup saved</Text>
+                  <Text style={styles.successFilename} numberOfLines={1} allowFontScaling={false}>{savedFilename}</Text>
+                  <Text style={styles.successHint} allowFontScaling={false}>
                     {Platform.OS === 'ios'
                       ? 'Find it in Files app > On My iPhone > Card Vault > backups'
                       : 'Use the button below to move it to Downloads or another folder.'}
@@ -217,7 +217,7 @@ export default function ExportScreen() {
 
             <View style={styles.warningCard}>
               <Feather style={{marginTop: 3}} name="alert-triangle" size={16} color={theme.colors.warning} />
-              <Text style={styles.warningText}>
+              <Text style={styles.warningText} allowFontScaling={false}>
                 If you forget this export password, the backup cannot be restored.
               </Text>
             </View>
@@ -233,8 +233,8 @@ export default function ExportScreen() {
         <View style={[StyleSheet.absoluteFill, styles.exportingOverlay]}>
           <View style={styles.exportingCard}>
             <ActivityIndicator color={theme.colors.primary} size="large" />
-            <Text style={styles.exportingTitle}>Encrypting your vault…</Text>
-            <Text style={styles.exportingSubtitle}>
+            <Text style={styles.exportingTitle} allowFontScaling={false}>Encrypting your vault…</Text>
+            <Text style={styles.exportingSubtitle} allowFontScaling={false}>
               This may take a few seconds.{'\n'}Please don't close the app.
             </Text>
           </View>
@@ -250,13 +250,13 @@ function StepRow({ icon, text }: { icon: React.ComponentProps<typeof Feather>['n
       <View style={styles.stepIcon}>
         <Feather name={icon} size={15} color={theme.colors.primary} />
       </View>
-      <Text style={styles.stepText}>{text}</Text>
+      <Text style={styles.stepText} allowFontScaling={false}>{text}</Text>
     </View>
   );
 }
 
 function FieldLabel({ label }: { label: string }) {
-  return <Text style={styles.fieldLabel}>{label}</Text>;
+  return <Text style={styles.fieldLabel} allowFontScaling={false}>{label}</Text>;
 }
 
 function PasswordStrength({ password }: { password: string }) {
@@ -281,7 +281,7 @@ function PasswordStrength({ password }: { password: string }) {
           ]}
         />
       </View>
-      <Text style={[styles.strengthLabel, { color }]}>{strength}</Text>
+      <Text style={[styles.strengthLabel, { color }]} allowFontScaling={false}>{strength}</Text>
     </View>
   );
 }

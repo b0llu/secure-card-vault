@@ -86,8 +86,8 @@ export default function ResetPinScreen() {
             <View style={styles.heroBadge}>
               <Feather name="key" size={22} color={theme.colors.primary} />
             </View>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.subtitle}>{description}</Text>
+            <Text style={styles.title} allowFontScaling={false}>{title}</Text>
+            <Text style={styles.subtitle} allowFontScaling={false}>{description}</Text>
           </View>
 
           <View style={styles.progress}>
@@ -105,6 +105,7 @@ export default function ResetPinScreen() {
                       styles.progressLabel,
                       active && styles.progressLabelActive,
                     ]}
+                    allowFontScaling={false}
                   >
                     {label}
                   </Text>
@@ -130,7 +131,7 @@ export default function ResetPinScreen() {
             />
           </View>
 
-          <Text style={styles.note}>
+          <Text style={styles.note} allowFontScaling={false}>
             Biometric unlock settings stay the same after changing your PIN.
           </Text>
         </ScrollView>
