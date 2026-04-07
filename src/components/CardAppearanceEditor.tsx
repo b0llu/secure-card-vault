@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Dimensions,
   Modal,
   ScrollView,
   StyleSheet,
@@ -99,6 +100,9 @@ export function CardAppearanceEditor({
   const customButtonColor =
     selected ??
     getBrandDefaultColor(previewCard.brand);
+
+  // Modal backdrop padding (20) + modal card padding (18) on each side = 76px total
+  const modalCardWidth = Dimensions.get('window').width - 76;
 
   const [draftColor, setDraftColor] = useState(customButtonColor);
   const pickerPreviewCard = useMemo<Card>(
@@ -218,7 +222,7 @@ export function CardAppearanceEditor({
               </View>
 
               <View style={styles.modalCardPreviewWrap}>
-                <CardView card={pickerPreviewCard} />
+                <CardView card={pickerPreviewCard} width={modalCardWidth} />
               </View>
 
               <ColorPicker

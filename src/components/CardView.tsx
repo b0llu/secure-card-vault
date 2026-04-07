@@ -25,22 +25,26 @@ interface CardViewProps {
   card: Card;
   showCVV?: boolean;
   showNumber?: boolean;
+  width?: number;
 }
 
 export const CardView: React.FC<CardViewProps> = ({
   card,
   showCVV = false,
   showNumber = false,
+  width,
 }) => {
   const appearance = getResolvedCardAppearance(card);
   const brandLabel = getBrandDisplayName(card.brand, card.customBrandName);
+  const cardWidth = width ?? CARD_WIDTH;
+  const cardHeight = cardWidth * 0.53;
 
   return (
     <LinearGradient
       colors={appearance.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1.2 }}
-      style={[styles.card, { width: CARD_WIDTH, height: CARD_HEIGHT }]}
+      style={[styles.card, { width: cardWidth, height: cardHeight }]}
     >
       <View style={[styles.overlayOrb, { backgroundColor: appearance.orbColor }]} />
 

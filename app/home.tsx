@@ -6,6 +6,7 @@ import {
   SectionList,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -104,6 +105,9 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<ModalConfig | null>(null);
   const [activeGrouping, setActiveGrouping] = useState<GroupingKey>('none');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchVisible, setSearchVisible] = useState(false);
+  const searchInputRef = useRef<TextInput>(null);
 
   const loadCards = useCallback(async () => {
     setLoading(true);
@@ -143,10 +147,34 @@ export default function HomeScreen() {
     return 'none';
   }, [activeGrouping, availableGroupings]);
 
+  const filteredCards = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return cards;
+    return cards.filter((c) => {
+      const last4 = c.cardNumber.slice(-4);
+      return (
+        c.name?.toLowerCase().includes(q) ||
+        c.nickname?.toLowerCase().includes(q) ||
+        c.bankName?.toLowerCase().includes(q) ||
+        last4.includes(q)
+      );
+    });
+  }, [cards, searchQuery]);
+
   const sections = useMemo(
-    () => groupCards(cards, effectiveGrouping),
-    [cards, effectiveGrouping],
+    () => groupCards(filteredCards, effectiveGrouping),
+    [filteredCards, effectiveGrouping],
   );
+
+  const handleToggleSearch = () => {
+    if (searchVisible) {
+      setSearchVisible(false);
+      setSearchQuery('');
+    } else {
+      setSearchVisible(true);
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+    }
+  };
 
   const handleAddCard = () => {
     router.push('/add-card');
@@ -159,13 +187,16 @@ export default function HomeScreen() {
   const renderSectionHeader = ({
     section,
   }: {
-    section: { title: string };
+    section: { title: string; data: Card[] };
   }) => {
     if (!section.title) return null;
     return (
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionHeaderText} allowFontScaling={false}>
           {section.title.toUpperCase()}
+          <Text style={styles.sectionHeaderCount} allowFontScaling={false}>
+            {' '}({section.data.length})
+          </Text>
         </Text>
       </View>
     );
@@ -213,7 +244,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <View style={[styles.groupingBarShell, !showGroupingBar && styles.groupingBarShellHidden]}>
+          <View style={styles.filtersRow}>
             {showGroupingBar ? (
               <ScrollView
                 horizontal
@@ -249,8 +280,43 @@ export default function HomeScreen() {
                   );
                 })}
               </ScrollView>
-            ) : null}
+            ) : <View style={{ flex: 1 }} />}
+
+            <TouchableOpacity
+              onPress={handleToggleSearch}
+              style={[styles.searchToggleBtn, searchVisible && styles.searchToggleBtnActive]}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel={searchVisible ? 'Close search' : 'Search cards'}
+            >
+              <Feather
+                name={searchVisible ? 'x' : 'search'}
+                size={15}
+                color={searchVisible ? theme.colors.primaryInk : theme.colors.textMuted}
+              />
+            </TouchableOpacity>
           </View>
+
+          {searchVisible && (
+            <View style={styles.searchBarWrap}>
+              <View style={styles.searchBarInner}>
+                <Feather name="search" size={15} color={theme.colors.textMuted} style={styles.searchIcon} />
+                <TextInput
+                  ref={searchInputRef}
+                  style={styles.searchInput}
+                  placeholder="Search by name, bank or last 4…"
+                  placeholderTextColor={theme.colors.textMuted}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  returnKeyType="search"
+                  clearButtonMode="while-editing"
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  allowFontScaling={false}
+                />
+              </View>
+            </View>
+          )}
         </View>
 
         <View style={styles.listWrap}>
@@ -581,7 +647,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 16,
-    paddingHorizontal: 15,
+    paddingHorizontal: 10,
     paddingTop: 14,
     paddingBottom: 12,
   },
@@ -609,18 +675,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  groupingBar: {
-    flexGrow: 0,
-  },
-  groupingBarShell: {
+  filtersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     minHeight: 48,
-    justifyContent: 'center',
+    paddingLeft: 10,
+    paddingRight: 10,
   },
-  groupingBarShellHidden: {
-    minHeight: 0,
+  searchToggleBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+    marginTop: 2,
+    marginBottom: 10,
+    flexShrink: 0,
+  },
+  searchToggleBtnActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  groupingBar: {
+    flex: 1,
   },
   groupingBarContent: {
-    paddingHorizontal: 15,
+    paddingRight: 8,
     paddingTop: 2,
     paddingBottom: 10,
     gap: 8,
@@ -668,6 +752,31 @@ const styles = StyleSheet.create({
   sectionSeparator: {
     height: 6,
   },
+  searchBarWrap: {
+    paddingHorizontal: 10,
+    paddingTop: 0,
+    paddingBottom: 10,
+  },
+  searchBarInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    height: 42,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    color: theme.colors.text,
+    fontSize: 14,
+    fontWeight: '500',
+    paddingVertical: 0,
+  },
   sectionHeader: {
     paddingTop: 18,
     paddingBottom: 10,
@@ -677,6 +786,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.4,
+  },
+  sectionHeaderCount: {
+    color: theme.colors.textMuted,
+    fontSize: 11,
+    fontWeight: '500',
+    letterSpacing: 0,
   },
   cardRow: {
     borderRadius: 24,
@@ -837,7 +952,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: 15,
+    paddingHorizontal: 10,
     paddingTop: 12,
   },
   footerGradient: {
