@@ -3,8 +3,10 @@ module.exports = function (api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      // Required for react-native-reanimated
-      'react-native-reanimated/plugin',
+      // Strip console.* calls from production builds
+      ...(process.env.NODE_ENV === 'production'
+        ? [['transform-remove-console', { exclude: ['error', 'warn'] }]]
+        : []),
     ],
   };
 };

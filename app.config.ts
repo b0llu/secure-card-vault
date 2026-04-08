@@ -5,7 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'Card Vault',
   slug: 'card-vault',
   owner: 'bollu',
-  version: '5.0.0',
+  version: '6.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'dark',
@@ -33,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#0E0E0E',
     },
     package: 'com.cardvault.free',
-    versionCode: 5,
+    versionCode: 6,
     permissions: [
       'android.permission.CAMERA',
       'android.permission.USE_BIOMETRIC',

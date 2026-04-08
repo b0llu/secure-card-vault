@@ -9,11 +9,7 @@ import {
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import ColorPicker, {
-  HueSlider,
-  Panel1,
-  type ColorFormatsObject,
-} from 'reanimated-color-picker';
+import { ColorPickerSimple } from './ColorPickerSimple';
 
 import type { Card } from '../types';
 import {
@@ -127,8 +123,8 @@ export function CardAppearanceEditor({
     setPickerVisible(true);
   };
 
-  const handlePickerChange = (colors: ColorFormatsObject) => {
-    const nextColor = normalizeHexColor(colors.hex);
+  const handlePickerChange = (hex: string) => {
+    const nextColor = normalizeHexColor(hex);
     if (nextColor) {
       setDraftColor(nextColor);
     }
@@ -225,16 +221,14 @@ export function CardAppearanceEditor({
                 <CardView card={pickerPreviewCard} width={modalCardWidth} />
               </View>
 
-              <ColorPicker
+              <ColorPickerSimple
                 value={draftColor}
-                onChangeJS={handlePickerChange}
-                style={styles.picker}
+                onChange={handlePickerChange}
+                panelStyle={styles.pickerPanel}
+                sliderStyle={styles.hueSlider}
                 thumbSize={28}
                 sliderThickness={22}
-              >
-                <Panel1 style={styles.pickerPanel} />
-                <HueSlider style={styles.hueSlider} />
-              </ColorPicker>
+              />
             </ScrollView>
 
             <View style={styles.modalActions}>
@@ -421,9 +415,6 @@ const styles = StyleSheet.create({
   },
   modalCardPreviewWrap: {
     alignItems: 'center',
-  },
-  picker: {
-    gap: 14,
   },
   pickerPanel: {
     height: 220,
